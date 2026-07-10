@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viral Engine — Control Panel</title>
+<style>
+  /* ---------- Minimal Tailwind-equivalent utility layer (no CDN — sandboxed hosting has no network access) ---------- */
+  *,*::before,*::after{box-sizing:border-box;border-width:0;border-style:solid;}
+  .flex{display:flex;} .grid{display:grid;} .hidden{display:none;} .inline-flex{display:inline-flex;}
+  .flex-col{flex-direction:column;} .flex-1{flex:1 1 0%;} .flex-wrap{flex-wrap:wrap;} .shrink-0{flex-shrink:0;}
+  .items-center{align-items:center;} .items-end{align-items:flex-end;}
+  .justify-between{justify-content:space-between;} .justify-end{justify-content:flex-end;} .justify-center{justify-content:center;}
+  .gap-1{gap:.25rem;} .gap-1\.5{gap:.375rem;} .gap-2{gap:.5rem;} .gap-3{gap:.75rem;} .gap-4{gap:1rem;} .gap-5{gap:1.25rem;} .gap-6{gap:1.5rem;}
+  .grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr));}
+  .grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .ml-auto{margin-left:auto;} .mt-auto{margin-top:auto;}
+  .mb-1{margin-bottom:.25rem;} .mb-2{margin-bottom:.5rem;} .mb-3{margin-bottom:.75rem;} .mb-4{margin-bottom:1rem;} .mb-5{margin-bottom:1.25rem;} .mb-6{margin-bottom:1.5rem;} .mb-8{margin-bottom:2rem;}
+  .mt-1{margin-top:.25rem;} .mt-2{margin-top:.5rem;} .mt-3{margin-top:.75rem;} .mt-6{margin-top:1.5rem;} .mt-8{margin-top:2rem;}
+  .p-1{padding:.25rem;} .p-4{padding:1rem;} .p-5{padding:1.25rem;} .p-6{padding:1.5rem;} .p-8{padding:2rem;}
+  .px-1{padding-left:.25rem;padding-right:.25rem;} .px-2{padding-left:.5rem;padding-right:.5rem;} .px-3{padding-left:.75rem;padding-right:.75rem;} .px-4{padding-left:1rem;padding-right:1rem;}
+  .py-2{padding-top:.5rem;padding-bottom:.5rem;} .py-2\.5{padding-top:.625rem;padding-bottom:.625rem;} .py-3{padding-top:.75rem;padding-bottom:.75rem;} .py-1\.5{padding-top:.375rem;padding-bottom:.375rem;}
+  .pb-6{padding-bottom:1.5rem;} .pl-2{padding-left:.5rem;} .pt-4{padding-top:1rem;} .pt-5{padding-top:1.25rem;} .pt-6{padding-top:1.5rem;}
+  .w-2{width:.5rem;} .w-10{width:2.5rem;} .w-64{width:16rem;} .w-full{width:100%;} .w-\[240px\]{width:240px;}
+  .h-2{height:.5rem;} .h-10{height:2.5rem;} .h-52{height:13rem;} .h-fit{height:fit-content;} .h-full{height:100%;} .h-screen{height:100vh;}
+  .min-h-screen{min-height:100vh;} .max-w-\[1400px\]{max-width:1400px;} .min-w-\[220px\]{min-width:220px;} .max-h-\[50vh\]{max-height:50vh;}
+  .rounded-full{border-radius:9999px;} .rounded-lg{border-radius:.5rem;} .rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem;}
+  .rounded-xl{border-radius:.75rem;} .rounded-2xl{border-radius:1rem;}
+  .border{border-width:1px;} .border-t{border-top-width:1px;} .border-r{border-right-width:1px;}
+  .bg-white{background-color:#fff;}
+  .font-medium{font-weight:500;} .font-semibold{font-weight:600;} .font-bold{font-weight:700;} .font-extrabold{font-weight:800;}
+  .text-xs{font-size:.75rem;line-height:1rem;} .text-sm{font-size:.875rem;line-height:1.25rem;} .text-lg{font-size:1.125rem;line-height:1.75rem;}
+  .text-xl{font-size:1.25rem;line-height:1.75rem;} .text-2xl{font-size:1.5rem;line-height:2rem;} .text-3xl{font-size:1.875rem;line-height:2.25rem;}
+  .text-\[\.68rem\]{font-size:.68rem;} .text-\[\.7rem\]{font-size:.7rem;}
+  .text-center{text-align:center;} .uppercase{text-transform:uppercase;} .underline{text-decoration-line:underline;} .decoration-dotted{text-decoration-style:dotted;}
+  .leading-relaxed{line-height:1.7;} .leading-snug{line-height:1.375;} .tracking-tight{letter-spacing:-0.03em;} .tracking-wider{letter-spacing:.05em;}
+  .cursor-pointer{cursor:pointer;} .overflow-hidden{overflow:hidden;} .overflow-x-auto{overflow-x:auto;} .overflow-y-auto{overflow-y:auto;}
+  .sticky{position:sticky;} .top-0{top:0;} .top-6{top:1.5rem;}
+  .transition-colors{transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease;}
+  .transition-\[width\]{transition-property:width;} .duration-500{transition-duration:500ms;}
+  .text-white{color:#fff;}
+  @media (min-width:640px){ .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} .sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (min-width:768px){ .md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} .md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));} .md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr));} }
+  @media (min-width:1024px){
+    .lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .lg\:grid-cols-\[1fr_360px\]{grid-template-columns:1fr 360px;}
+    .lg\:grid-cols-\[220px_1fr_280px\]{grid-template-columns:220px 1fr 280px;}
+  }
+  .hover\:bg-\[var\(--gray-100\)\]:hover{background-color:var(--gray-100);}
+  /* Bracket/CSS-variable utilities used inline in this file */
+  .bg-\[var\(--gray-50\)\]{background-color:var(--gray-50);} .bg-\[var\(--gray-100\)\]{background-color:var(--gray-100);} .bg-\[var\(--ink\)\]{background-color:var(--ink);}
+  .border-\[var\(--gray-100\)\]{border-color:var(--gray-100);} .border-\[var\(--gray-200\)\]{border-color:var(--gray-200);} .border-\[var\(--line\)\]{border-color:var(--line);}
+  .text-\[var\(--gray-400\)\]{color:var(--gray-400);} .text-\[var\(--gray-500\)\]{color:var(--gray-500);} .text-\[var\(--gray-700\)\]{color:var(--gray-700);} .text-\[var\(--ink\)\]{color:var(--ink);}
+  /* Important-prefixed overrides (Tailwind's `!` modifier) */
+  .\!border-0{border-width:0 !important;} .\!border-\[var\(--gray-100\)\]{border-color:var(--gray-100) !important;}
+  .\!h-8{height:2rem !important;} .\!h-9{height:2.25rem !important;} .\!w-8{width:2rem !important;} .\!w-9{width:2.25rem !important;}
+  .\!p-0{padding:0 !important;} .\!px-2{padding-left:.5rem !important;padding-right:.5rem !important;} .\!px-3{padding-left:.75rem !important;padding-right:.75rem !important;}
+  .\!py-1\.5{padding-top:.375rem !important;padding-bottom:.375rem !important;} .\!py-2{padding-top:.5rem !important;padding-bottom:.5rem !important;}
+  .\!shadow-none{box-shadow:none !important;} .\!text-xs{font-size:.75rem !important;line-height:1rem !important;}
+  :root{
+    --ink:#111113;
+    --ink-soft:#1c1c20;
+    --gray-900:#18181b;
+    --gray-700:#3f3f46;
+    --gray-500:#71717a;
+    --gray-400:#a1a1aa;
+    --gray-200:#e4e4e7;
+    --gray-100:#f2f2f4;
+    --gray-50:#f8f8f9;
+    --line:#ececef;
+    --up:#16a34a;
+    --down:#dc2626;
+  }
+  *{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;}
+  body{background:var(--gray-50);color:var(--ink);}
+
+  .sidebar-link{
+    display:flex;align-items:center;gap:.65rem;
+    padding:.6rem .9rem;border-radius:.85rem;
+    font-size:.875rem;font-weight:500;color:var(--gray-500);
+    transition:background 160ms ease, color 160ms ease, transform 160ms ease;
+    cursor:pointer;
+  }
+  .sidebar-link:hover{background:var(--gray-100);color:var(--ink);}
+  .sidebar-link:active{transform:scale(0.98);}
+  .sidebar-link.active{background:var(--ink);color:#fff;}
+  .sidebar-link:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:1rem;
+  }
+  .shadow-soft{ box-shadow: 0 1px 2px rgba(17,17,19,0.03), 0 8px 24px rgba(17,17,19,0.04); }
+
+  .pill-tab{
+    padding:.5rem 1.1rem;border-radius:9999px;font-size:.813rem;font-weight:500;
+    color:var(--gray-500);background:transparent;border:1px solid transparent;
+    transition:background 160ms ease, color 160ms ease;cursor:pointer;
+  }
+  .pill-tab:hover{background:var(--gray-100);}
+  .pill-tab.active{background:var(--ink);color:#fff;}
+  .pill-tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .btn-primary{
+    background:var(--ink);color:#fff;padding:.65rem 1.15rem;border-radius:.7rem;
+    font-weight:500;font-size:.875rem;border:none;cursor:pointer;
+    transition:background 180ms cubic-bezier(.34,1.56,.64,1), transform 180ms cubic-bezier(.34,1.56,.64,1);
+  }
+  .btn-primary:hover{background:var(--ink-soft);transform:translateY(-1px);}
+  .btn-primary:active{transform:translateY(0);}
+  .btn-primary:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .btn-primary:disabled{background:var(--gray-200);color:var(--gray-400);cursor:not-allowed;transform:none;}
+
+  .btn-secondary{
+    background:#fff;color:var(--ink);padding:.65rem 1.15rem;border-radius:.7rem;
+    font-weight:500;font-size:.875rem;border:1px solid var(--gray-200);cursor:pointer;
+    transition:background 180ms ease, border-color 180ms ease;
+  }
+  .btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-400);}
+  .btn-secondary:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .icon-btn{
+    width:2.5rem;height:2.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;
+    background:#fff;border:1px solid var(--gray-200);cursor:pointer;transition:background 160ms ease, transform 160ms ease;
+  }
+  .icon-btn:hover{background:var(--gray-100);}
+  .icon-btn:active{transform:scale(0.94);}
+  .icon-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  .badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .75rem;border-radius:9999px;font-size:.72rem;font-weight:600;letter-spacing:.02em;}
+  .badge-ready{background:rgba(22,163,74,0.1);color:#15803d;}
+  .badge-notready{background:var(--gray-100);color:var(--gray-500);}
+  .badge-checking{background:rgba(217,119,6,0.1);color:#b45309;}
+  .badge-warming{background:rgba(217,119,6,0.1);color:#b45309;}
+  .badge-active{background:rgba(22,163,74,0.1);color:#15803d;}
+  .badge-paused{background:rgba(220,38,38,0.1);color:#b91c1c;}
+  .badge-dark{background:var(--ink);color:#fff;}
+
+  .section{display:none;}
+  .section.active{display:block;animation:fadeIn 260ms ease-out;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .modal{display:none;position:fixed;inset:0;background:rgba(17,17,19,0.45);z-index:1000;align-items:center;justify-content:center;}
+  .modal.active{display:flex;animation:fadeIn 180ms ease-out;}
+  .modal-content{background:#fff;border-radius:1.1rem;padding:1.75rem;max-width:560px;width:92%;max-height:88vh;overflow-y:auto;animation:slideUp 260ms cubic-bezier(.34,1.56,.64,1);}
+  @keyframes slideUp{from{transform:translateY(1.25rem);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+  input[type=text],input[type=number],input[type=password],select,textarea{
+    width:100%;padding:.65rem .8rem;border:1px solid var(--gray-200);border-radius:.6rem;
+    font-size:.875rem;transition:border-color 160ms ease, box-shadow 160ms ease;background:#fff;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,17,19,0.06);}
+  label.field-label{font-size:.78rem;font-weight:600;color:var(--gray-700);margin-bottom:.35rem;display:block;}
+
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;padding:.9rem 1rem;border-bottom:1px solid var(--line);font-size:.7rem;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;}
+  td{padding:.9rem 1rem;border-bottom:1px solid var(--gray-50);font-size:.85rem;}
+  tr:last-child td{border-bottom:none;}
+  tr.trow:hover td{background:var(--gray-50);}
+
+  .toggle{position:relative;width:2.6rem;height:1.5rem;border-radius:9999px;background:var(--gray-200);cursor:pointer;transition:background 180ms ease;flex-shrink:0;}
+  .toggle.on{background:var(--ink);}
+  .toggle .knob{position:absolute;top:2px;left:2px;width:1.25rem;height:1.25rem;border-radius:9999px;background:#fff;transition:transform 180ms cubic-bezier(.34,1.56,.64,1);box-shadow:0 1px 2px rgba(0,0,0,0.15);}
+  .toggle.on .knob{transform:translateX(1.1rem);}
+
+  .step-dot{width:2rem;height:2rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;background:var(--gray-100);color:var(--gray-400);border:1px solid var(--gray-200);}
+  .step-dot.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .step-dot.done{background:#15803d;color:#fff;border-color:#15803d;}
+  .step-line{flex:1;height:1px;background:var(--gray-200);}
+
+  .wizard-step{display:none;}
+  .wizard-step.active{display:block;animation:fadeIn 220ms ease-out;}
+
+  .choice-card{border:1.5px solid var(--gray-200);border-radius:.85rem;padding:1rem 1.1rem;cursor:pointer;transition:border-color 160ms ease, background 160ms ease;}
+  .choice-card:hover{border-color:var(--gray-400);}
+  .choice-card.selected{border-color:var(--ink);background:var(--gray-50);}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:9999px;}
+
+  /* Warmup preset builder */
+  .preset-nav-item{
+    display:flex;align-items:flex-start;gap:.65rem;padding:.7rem .75rem;border-radius:.75rem;
+    cursor:pointer;border:1px solid transparent;transition:background 160ms ease, border-color 160ms ease;
+  }
+  .preset-nav-item:hover{background:var(--gray-50);}
+  .preset-nav-item.active{background:var(--gray-50);border-color:var(--gray-200);}
+  .preset-nav-item:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .preset-nav-icon{font-size:1rem;line-height:1.4rem;}
+  .preset-nav-label{display:block;font-size:.83rem;font-weight:600;color:var(--ink);}
+  .preset-nav-item:not(.active) .preset-nav-label{color:var(--gray-700);}
+  .preset-nav-sub{display:block;font-size:.72rem;color:var(--gray-400);margin-top:.1rem;}
+
+  .preset-step{display:none;}
+  .preset-step.active{display:block;animation:fadeIn 220ms ease-out;}
+
+  .range-track{position:relative;height:.35rem;border-radius:9999px;background:var(--gray-200);}
+  .range-track .range-fill{position:absolute;top:0;height:100%;border-radius:9999px;background:var(--ink);}
+  .range-track .range-handle{
+    position:absolute;top:50%;width:1.05rem;height:1.05rem;border-radius:9999px;
+    background:#fff;border:2px solid var(--ink);transform:translate(-50%,-50%);
+    cursor:grab;box-shadow:0 1px 3px rgba(17,17,19,0.2);touch-action:none;
+  }
+  .range-handle:active{cursor:grabbing;}
+  .range-handle:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .range-input{-moz-appearance:textfield;}
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="w-[240px] shrink-0 bg-white border-r border-[var(--line)] flex flex-col p-5 sticky top-0 h-screen">
+    <div class="text-xl font-extrabold tracking-tight mb-8 px-1">Viral<span class="text-[var(--gray-400)]">Engine</span></div>
+
+    <nav class="flex flex-col gap-1" id="sidebarNav">
+      <div class="sidebar-link active" data-page="dashboard" tabindex="0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="sidebar-link" data-page="cloudphones" tabindex="0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Cloudphones
+      </div>
+      <div class="sidebar-link" data-page="brands" tabindex="0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9m9 0-4-4m4 4-4 4M4 17h9m-9 0 4 4m-4-4 4-4"/></svg>
+        Brands &amp; Projects
+      </div>
+      <div class="sidebar-link" data-page="accounts" tabindex="0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        Accounts &amp; Warmup
+      </div>
+      <div class="sidebar-link" data-page="campaigns" tabindex="0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-7-7 18-3-8-8-3z"/></svg>
+        Campaigns
+      </div>
+    </nav>
+
+    <div class="mt-auto flex flex-col gap-3">
+      <div class="rounded-2xl p-4 text-white" style="background:var(--ink);">
+        <p class="font-semibold text-sm mb-1">Upgrade to Pro</p>
+        <p class="text-xs text-[var(--gray-400)] mb-3 leading-snug">Unlock more cloudphone slots and proxy pools.</p>
+        <button class="w-full bg-white text-[var(--ink)] text-xs font-semibold rounded-lg py-2 hover:bg-[var(--gray-100)] transition-colors">Upgrade</button>
+      </div>
+      <div class="flex flex-col gap-1 px-1 text-sm text-[var(--gray-500)]">
+        <a href="#" class="sidebar-link !px-2">Settings</a>
+        <a href="#" class="sidebar-link !px-2">Help Center</a>
+        <a href="#" class="sidebar-link !px-2">Log out</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 p-8 max-w-[1400px]">
+
+    <!-- Shared topbar -->
+    <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+      <h1 class="text-3xl font-extrabold tracking-tight" id="pageTitle">Dashboard</h1>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-white border border-[var(--gray-200)] rounded-full px-4 py-2.5 w-64">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search..." class="!border-0 !p-0 !shadow-none text-sm w-full" style="outline:none;">
+        </div>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </button>
+        <img src="https://placehold.co/40x40/111113/fff?text=U" class="w-10 h-10 rounded-full" alt="User avatar">
+      </div>
+    </div>
+
+    <!-- ================= DASHBOARD ================= -->
+    <section class="section active" id="page-dashboard">
+      <div class="flex items-center gap-2 mb-6 flex-wrap">
+        <div class="flex gap-1 bg-white border border-[var(--gray-200)] rounded-full p-1">
+          <button class="pill-tab" data-range="day">Day</button>
+          <button class="pill-tab" data-range="week">Week</button>
+          <button class="pill-tab active" data-range="month">Month</button>
+          <button class="pill-tab" data-range="year">Year</button>
+        </div>
+        <div class="ml-auto flex items-center gap-2 bg-white border border-[var(--gray-200)] rounded-full px-4 py-2 text-sm text-[var(--gray-700)]">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          1 Sep 2024 – 31 Sep 2024
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+        <div class="card rounded-2xl p-5 text-white" style="background:var(--ink);">
+          <p class="text-sm text-[var(--gray-400)] mb-3">Connected Cloudphones</p>
+          <p class="text-3xl font-extrabold tracking-tight mb-2" id="statCloudphones">184</p>
+          <span class="badge" style="background:rgba(255,255,255,0.12);color:#4ade80;">↗ 4.2% from last month</span>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft">
+          <p class="text-sm text-[var(--gray-500)] mb-3">Connected Proxies</p>
+          <p class="text-3xl font-extrabold tracking-tight mb-2" id="statProxies">176</p>
+          <span class="badge" style="background:rgba(22,163,74,0.1);color:#15803d;">↗ 1.7% from last month</span>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft">
+          <p class="text-sm text-[var(--gray-500)] mb-3">Active Accounts</p>
+          <p class="text-3xl font-extrabold tracking-tight mb-2" id="statAccounts">1,457</p>
+          <span class="badge" style="background:rgba(220,38,38,0.1);color:#b91c1c;">↘ 2.9% from last month</span>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft">
+          <p class="text-sm text-[var(--gray-500)] mb-3">Active Campaigns</p>
+          <p class="text-3xl font-extrabold tracking-tight mb-2" id="statCampaigns">23</p>
+          <span class="badge" style="background:rgba(22,163,74,0.1);color:#15803d;">↗ 0.9% from last month</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5 mb-6">
+        <div class="card rounded-2xl p-6 shadow-soft">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-bold text-lg">Total Views</h3>
+            <button class="icon-btn !w-9 !h-9" aria-label="Expand chart">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+            </button>
+          </div>
+          <div class="flex items-end gap-6 h-52 pl-2">
+            <div class="flex flex-col justify-between h-full text-xs text-[var(--gray-400)] pb-6">
+              <span>10K</span><span>8K</span><span>4K</span><span>2K</span><span>0</span>
+            </div>
+            <div class="flex-1 flex items-end justify-between gap-4 h-full">
+              <div class="flex flex-col items-center gap-2 flex-1">
+                <div class="w-full rounded-t-lg" style="height:65%;background:var(--gray-900);"></div>
+                <span class="text-xs text-[var(--gray-500)]">Jan</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 flex-1">
+                <div class="w-full rounded-t-lg" style="height:58%;background:var(--gray-900);"></div>
+                <span class="text-xs text-[var(--gray-500)]">Feb</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 flex-1">
+                <div class="w-full rounded-t-lg" style="height:82%;background:var(--gray-400);"></div>
+                <span class="text-xs font-semibold">Mar</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 flex-1">
+                <div class="w-full rounded-t-lg" style="height:48%;background:var(--gray-900);"></div>
+                <span class="text-xs text-[var(--gray-500)]">Apr</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 flex-1">
+                <div class="w-full rounded-t-lg" style="height:75%;background:var(--gray-900);"></div>
+                <span class="text-xs text-[var(--gray-500)]">May</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 flex-1">
+                <div class="w-full rounded-t-lg" style="height:32%;background:var(--gray-900);"></div>
+                <span class="text-xs text-[var(--gray-500)]">Jun</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft flex flex-col gap-5">
+          <div class="flex items-center justify-between">
+            <button class="icon-btn !w-8 !h-8" aria-label="Previous month">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <h3 class="font-bold">September 2024</h3>
+            <button class="icon-btn !w-8 !h-8" aria-label="Next month">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-5 gap-2 text-center">
+            <div class="text-xs text-[var(--gray-400)] mb-1">Tue</div>
+            <div class="text-xs text-[var(--gray-400)] mb-1">Wed</div>
+            <div class="text-xs text-[var(--gray-400)] mb-1">Thu</div>
+            <div class="text-xs text-[var(--gray-400)] mb-1">Fri</div>
+            <div class="text-xs text-[var(--gray-400)] mb-1">Sat</div>
+            <div class="py-2 text-sm">17</div>
+            <div class="py-2 text-sm">18</div>
+            <div class="py-2 text-sm rounded-xl font-bold text-white" style="background:var(--ink);">19</div>
+            <div class="py-2 text-sm">20</div>
+            <div class="py-2 text-sm">21</div>
+          </div>
+          <div class="card rounded-xl p-4 flex items-center justify-between !border-[var(--gray-100)]">
+            <div>
+              <p class="font-bold text-sm mb-1">Campaign progress</p>
+              <span class="badge" style="background:rgba(22,163,74,0.1);color:#15803d;">↗ 0.9% from last month</span>
+            </div>
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--gray-100)" stroke-width="6"/>
+              <circle cx="26" cy="26" r="22" fill="none" stroke="var(--ink)" stroke-width="6" stroke-dasharray="138.2" stroke-dashoffset="48.4" stroke-linecap="round" transform="rotate(-90 26 26)"/>
+              <text x="26" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">65%</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg">Recent Campaign Activity</h3>
+          <div class="flex gap-2">
+            <button class="icon-btn !w-9 !h-9" aria-label="Refresh"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
+            <button class="icon-btn !w-9 !h-9" aria-label="Expand table"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Campaign</th><th>Brand</th><th>Accounts Used</th><th>Views</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr class="trow">
+              <td class="flex items-center gap-3 !border-0"><img src="https://placehold.co/40x40/e4e4e7/111113?text=%F0%9F%93%B1" class="w-10 h-10 rounded-lg" alt="">Autumn Drop</td>
+              <td>Nova Skin</td><td>#128</td><td>1.2M</td>
+              <td><span class="badge badge-dark">Active</span></td>
+            </tr>
+            <tr class="trow">
+              <td class="flex items-center gap-3 !border-0"><img src="https://placehold.co/40x40/e4e4e7/111113?text=%F0%9F%8E%AC" class="w-10 h-10 rounded-lg" alt="">Launch Week</td>
+              <td>Pulse Wear</td><td>#96</td><td>842K</td>
+              <td><span class="badge badge-ready">Completed</span></td>
+            </tr>
+            <tr class="trow">
+              <td class="flex items-center gap-3 !border-0"><img src="https://placehold.co/40x40/e4e4e7/111113?text=%F0%9F%93%88" class="w-10 h-10 rounded-lg" alt="">Retarget Q3</td>
+              <td>Nova Skin</td><td>#54</td><td>301K</td>
+              <td><span class="badge badge-paused">Paused</span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CLOUDPHONES ================= -->
+    <section class="section" id="page-cloudphones">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        <div class="card rounded-2xl p-5 shadow-soft">
+          <p class="text-sm text-[var(--gray-500)] mb-2">Connected Cloudphones</p>
+          <p class="text-3xl font-extrabold" id="cpCount">6</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft">
+          <p class="text-sm text-[var(--gray-500)] mb-2">Connected Proxies</p>
+          <p class="text-3xl font-extrabold" id="proxyCount">4</p>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft mb-6">
+        <h3 class="font-bold text-lg mb-4">1. Choose Cloudphone Provider</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="providerChoices">
+          <div class="choice-card selected" data-provider="Geelark">
+            <p class="font-semibold text-sm">Geelark</p>
+            <p class="text-xs text-[var(--gray-500)] mt-1">Cloud-based Android instances</p>
+          </div>
+          <div class="choice-card" data-provider="Cloudphone Labs">
+            <p class="font-semibold text-sm">Cloudphone Labs</p>
+            <p class="text-xs text-[var(--gray-500)] mt-1">Dedicated device farms</p>
+          </div>
+          <div class="choice-card" data-provider="Custom">
+            <p class="font-semibold text-sm">Custom Provider</p>
+            <p class="text-xs text-[var(--gray-500)] mt-1">Connect via API key</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="card rounded-2xl p-6 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">2. Cloudphones</h3>
+            <button class="btn-primary" onclick="openModal('addCloudphoneModal')">+ Add Cloudphone</button>
+          </div>
+          <p class="text-xs text-[var(--gray-500)] mb-4">Apps installed on add: Instagram, TikTok, YouTube</p>
+          <div class="flex flex-col gap-3" id="cloudphoneList"></div>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">3. Proxies</h3>
+            <button class="btn-primary" onclick="openModal('addProxyModal')">+ Add Proxy</button>
+          </div>
+          <p class="text-xs text-[var(--gray-500)] mb-4">Attach a proxy to a cloudphone, then check the connection.</p>
+          <div class="flex flex-col gap-3" id="proxyList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BRANDS & PROJECTS ================= -->
+    <section class="section" id="page-brands">
+      <div class="card rounded-2xl p-6 shadow-soft mb-6">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="font-bold text-lg">Brands</h3>
+          <button class="btn-primary" onclick="openModal('addBrandModal')">+ Add Brand</button>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Create a brand first, then add projects underneath it.</p>
+      </div>
+      <div class="flex flex-col gap-5" id="brandList"></div>
+    </section>
+
+    <!-- ================= ACCOUNTS & WARMUP ================= -->
+    <section class="section" id="page-accounts">
+
+      <!-- ========== 1. Session Configuration ========== -->
+      <div class="card rounded-2xl p-6 shadow-soft mb-6">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="font-bold text-lg">Session Configuration</h3>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Assign a saved warmup or maintenance preset to a pool and start a session. A pool can only run one session at a time — starting a new one stops and replaces whatever was running.</p>
+
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label class="field-label">Account pool</label>
+              <select id="sessionPoolSelect" onchange="renderSessionPresetSelect()"></select>
+            </div>
+            <div>
+              <label class="field-label">Preset type</label>
+              <div class="flex gap-1 bg-white border border-[var(--gray-200)] rounded-full p-1">
+                <button type="button" class="pill-tab active flex-1" id="sessionModeWarmupBtn" onclick="setSessionMode('warmup')">Warmup</button>
+                <button type="button" class="pill-tab flex-1" id="sessionModeMaintenanceBtn" onclick="setSessionMode('maintenance')">Maintenance</button>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Preset</label>
+              <select id="sessionPresetSelect"></select>
+            </div>
+            <button class="btn-primary" onclick="startSession()">Start Session</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Pool</th><th>Running preset</th><th>Accounts</th><th>Time remaining</th><th></th></tr></thead>
+          <tbody id="sessionTableBody"></tbody>
+        </table>
+        </div>
+        <p class="text-sm text-[var(--gray-400)] mt-3" id="sessionTableEmpty">No sessions running yet — assign a preset to a pool above and click Start Session.</p>
+      </div>
+
+      <!-- ========== 2. Account Pools ========== -->
+      <div class="card rounded-2xl p-6 shadow-soft mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg">Account Pools</h3>
+          <button class="btn-primary" onclick="openModal('addPoolModal')">+ Create Pool</button>
+        </div>
+        <div class="flex flex-col gap-3" id="poolList"></div>
+      </div>
+
+      <!-- ========== 3. Warmup Preset Builder (standalone) ========== -->
+      <div class="card rounded-2xl p-6 shadow-soft mb-6" id="warmupBuilderCard">
+        <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-lg">Warmup Preset Builder</h3>
+            <span class="badge badge-dark">Warmup</span>
+          </div>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Author or edit a warmup preset. Presets built here are saved to the library and assigned to pools from Session Configuration above.</p>
+
+        <div class="flex items-end gap-3 mb-5 flex-wrap">
+          <div class="flex-1 min-w-[220px]">
+            <label class="field-label">Load existing preset</label>
+            <select id="warmupLoadPresetSelect" onchange="loadPresetIntoBuilder('warmup')"></select>
+          </div>
+        </div>
+
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+          <p class="font-semibold text-sm mb-1">Theme / niche</p>
+          <p class="text-xs text-[var(--gray-500)] mb-3">What content should this preset engage with? Drives which reels and hashtags the pool interacts with.</p>
+          <div class="flex gap-2 flex-wrap mb-3" id="warmupNicheChips">
+            <button type="button" class="pill-tab" data-niche="Sports">Sports</button>
+            <button type="button" class="pill-tab" data-niche="Food">Food</button>
+            <button type="button" class="pill-tab" data-niche="Cars">Cars</button>
+            <button type="button" class="pill-tab" data-niche="Beauty">Beauty</button>
+            <button type="button" class="pill-tab" data-niche="Fitness">Fitness</button>
+            <button type="button" class="pill-tab" data-niche="Tech">Tech</button>
+            <button type="button" class="pill-tab" data-niche="Travel">Travel</button>
+          </div>
+          <input type="text" id="warmupNicheInput" placeholder="Or type a custom niche — e.g. vintage motorcycles">
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-6" id="warmupBuilderStepGrid">
+          <div class="flex flex-col gap-1" id="warmupPresetStepList"></div>
+          <div id="warmupPresetStepContent"></div>
+          <div id="warmupSummaryPanel"></div>
+        </div>
+      </div>
+
+      <!-- ========== 4. Maintenance Preset Builder (standalone) ========== -->
+      <div class="card rounded-2xl p-6 shadow-soft mb-6" id="maintenanceBuilderCard">
+        <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-lg">Maintenance Preset Builder</h3>
+            <span class="badge badge-active">Maintenance</span>
+          </div>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Author or edit a maintenance preset — used to keep a pool lightly active while it waits to be assigned to a campaign.</p>
+
+        <div class="flex items-end gap-3 mb-5 flex-wrap">
+          <div class="flex-1 min-w-[220px]">
+            <label class="field-label">Load existing preset</label>
+            <select id="maintenanceLoadPresetSelect" onchange="loadPresetIntoBuilder('maintenance')"></select>
+          </div>
+        </div>
+
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+          <p class="font-semibold text-sm mb-1">Mimic a warmup preset</p>
+          <p class="text-xs text-[var(--gray-500)] mb-3">One-time copy — pulls that preset's current ranges into this builder so you can tweak them. Editing the original warmup preset afterward will not affect this one.</p>
+          <div class="flex items-end gap-3 flex-wrap">
+            <div class="flex-1 min-w-[220px]">
+              <label class="field-label">Warmup preset to copy from</label>
+              <select id="mimicWarmupSelect"></select>
+            </div>
+            <button class="btn-secondary" onclick="copyFromWarmupPreset()">Copy from warmup preset</button>
+          </div>
+        </div>
+
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+          <p class="font-semibold text-sm mb-1">Theme / niche</p>
+          <p class="text-xs text-[var(--gray-500)] mb-3">What content should this preset engage with? Drives which reels and hashtags the pool interacts with.</p>
+          <div class="flex gap-2 flex-wrap mb-3" id="maintenanceNicheChips">
+            <button type="button" class="pill-tab" data-niche="Sports">Sports</button>
+            <button type="button" class="pill-tab" data-niche="Food">Food</button>
+            <button type="button" class="pill-tab" data-niche="Cars">Cars</button>
+            <button type="button" class="pill-tab" data-niche="Beauty">Beauty</button>
+            <button type="button" class="pill-tab" data-niche="Fitness">Fitness</button>
+            <button type="button" class="pill-tab" data-niche="Tech">Tech</button>
+            <button type="button" class="pill-tab" data-niche="Travel">Travel</button>
+          </div>
+          <input type="text" id="maintenanceNicheInput" placeholder="Or type a custom niche — e.g. vintage motorcycles">
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-6" id="maintenanceBuilderStepGrid">
+          <div class="flex flex-col gap-1" id="maintenancePresetStepList"></div>
+          <div id="maintenancePresetStepContent"></div>
+          <div id="maintenanceSummaryPanel"></div>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="font-bold text-lg">Preset Library</h3>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Warmup and maintenance presets saved from either builder land here — rename them and assign them to pools from Session Configuration.</p>
+        <div class="flex flex-col gap-3" id="presetLibraryList"></div>
+      </div>
+    </section>
+
+    <!-- ================= CAMPAIGNS ================= -->
+    <section class="section" id="page-campaigns">
+
+      <!-- Gate: choose brand & project before starting a campaign -->
+      <div class="card rounded-2xl p-6 shadow-soft" id="campaignGateCard">
+        <h3 class="font-bold text-lg mb-1">Assign Campaign</h3>
+        <p class="text-sm text-[var(--gray-500)] mb-5">Choose the brand and project this campaign belongs to before setting it up.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+          <div><label class="field-label">Brand</label><select id="campaignGateBrand"></select></div>
+          <div><label class="field-label">Project</label><select id="campaignGateProject"></select></div>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-5" id="campaignGateHint">Add a brand and a project on the <span class="font-semibold text-[var(--ink)]">Brands &amp; Projects</span> page first.</p>
+        <button class="btn-primary" id="campaignGateStart" onclick="startCampaignWizard()" disabled>Start Campaign Setup</button>
+      </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft" id="campaignWizardCard" style="display:none;">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <p class="text-xs text-[var(--gray-500)]">Brand / Project</p>
+            <p class="font-semibold text-sm" id="campaignAssignedLabel">—</p>
+          </div>
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="editCampaignAssignment()">Change Brand / Project</button>
+        </div>
+        <div class="flex items-center gap-3 mb-8" id="wizardSteps">
+          <div class="step-dot active" data-step="1">1</div><div class="step-line"></div>
+          <div class="step-dot" data-step="2">2</div><div class="step-line"></div>
+          <div class="step-dot" data-step="3">3</div><div class="step-line"></div>
+          <div class="step-dot" data-step="4">4</div><div class="step-line"></div>
+          <div class="step-dot" data-step="5">5</div>
+        </div>
+
+        <!-- Step 1: Campaign basics -->
+        <div class="wizard-step active" data-wstep="1">
+          <h3 class="font-bold text-lg mb-4">Campaign Details</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div><label class="field-label">Campaign Name</label><input type="text" placeholder="e.g. Autumn Drop"></div>
+            <div><label class="field-label">Time Period</label><input type="text" placeholder="e.g. 30 days"></div>
+          </div>
+          <label class="field-label">Primary Target</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="targetChoices">
+            <div class="choice-card selected" data-target="views">
+              <p class="font-semibold text-sm">Total Views</p>
+              <p class="text-xs text-[var(--gray-500)] mt-1 mb-3">Optimize distribution for aggregate view count</p>
+              <label class="field-label">Target Total Views</label>
+              <input type="number" id="targetViewsInput" placeholder="e.g. 1000000" min="0" onclick="event.stopPropagation()">
+            </div>
+            <div class="choice-card" data-target="videos">
+              <p class="font-semibold text-sm">Total Videos Posted</p>
+              <p class="text-xs text-[var(--gray-500)] mt-1 mb-3">Optimize distribution for posting volume</p>
+              <label class="field-label">Target Total Videos</label>
+              <input type="number" id="targetVideosInput" placeholder="e.g. 500" min="0" onclick="event.stopPropagation()">
+            </div>
+          </div>
+          <label class="field-label">Split Mode</label>
+          <div class="flex gap-2 mb-5 flex-wrap">
+            <button class="pill-tab active" data-split="equal">Equal Split</button>
+            <button class="pill-tab" data-split="grid">Per-cell Grid</button>
+            <button class="pill-tab" data-split="weighted">Weighted</button>
+          </div>
+          <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)]">
+            <p class="text-sm font-semibold mb-1">PRD Formula Estimate</p>
+            <p class="text-xs text-[var(--gray-500)]">~184 cloudphones, 176 proxies, and 1,240 accounts required to hit target within time period.</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Pool & account settings -->
+        <div class="wizard-step" data-wstep="2">
+          <h3 class="font-bold text-lg mb-4">Account Pool &amp; Settings</h3>
+          <div class="mb-5">
+            <label class="field-label">Choose Pools</label>
+            <p class="text-xs text-[var(--gray-500)] mb-2">Select every account pool this campaign should draw from.</p>
+            <div class="flex flex-col gap-2" id="campaignPoolChecklist"></div>
+            <div class="flex items-center gap-4 mt-3 text-sm" id="campaignPoolCounts">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:#15803d;"></span><span id="campaignPoolReady">0</span> ready</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:var(--gray-400);"></span><span id="campaignPoolNotReady">0</span> not ready</span>
+              <span class="text-[var(--gray-400)]">·</span>
+              <span><span id="campaignPoolTotal">0</span> accounts total across <span id="campaignPoolCount">0</span> pool(s)</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3 mb-5">
+            <div class="flex items-center justify-between"><span class="text-sm font-medium">Change avatar, username, name, bio, link</span><div class="toggle" data-toggle="changeProfile" id="changeProfileToggle"><div class="knob"></div></div></div>
+
+            <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] flex flex-col gap-4" id="changeProfilePanel" style="display:none;">
+              <div>
+                <label class="field-label">Avatars</label>
+                <div class="flex gap-1 bg-white border border-[var(--gray-200)] rounded-full p-1 mb-3 w-fit">
+                  <button type="button" class="pill-tab active" id="avatarSourceFolderBtn" onclick="setAvatarSource('folder')">Local Folder</button>
+                  <button type="button" class="pill-tab" id="avatarSourceDriveBtn" onclick="setAvatarSource('drive')">Google Drive Link</button>
+                </div>
+                <div id="avatarFolderBlock">
+                  <div class="flex items-center gap-3">
+                    <input type="text" id="avatarFolderPath" placeholder="No folder selected" readonly class="flex-1">
+                    <button type="button" class="btn-secondary !text-xs !py-2 !px-3 shrink-0" onclick="document.getElementById('avatarFolderInput').click()">Choose Folder</button>
+                    <input type="file" id="avatarFolderInput" webkitdirectory directory multiple class="hidden" style="display:none;">
+                  </div>
+                  <p class="text-xs text-[var(--gray-500)] mt-2" id="avatarFolderSummary">One image per account, assigned in folder order.</p>
+                </div>
+                <div id="avatarDriveBlock" style="display:none;">
+                  <input type="text" id="avatarDriveLink" placeholder="https://drive.google.com/drive/folders/...">
+                  <p class="text-xs text-[var(--gray-500)] mt-2">Paste a link to a shared Drive folder — images are pulled in folder order, one per account.</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label">Usernames (one per line)</label>
+                  <textarea rows="5" id="profileUsernames" placeholder="account.one&#10;account.two&#10;account.three"></textarea>
+                </div>
+                <div>
+                  <label class="field-label">Names (one per line)</label>
+                  <textarea rows="5" id="profileNames" placeholder="Account One&#10;Account Two&#10;Account Three"></textarea>
+                </div>
+                <div>
+                  <label class="field-label">Bios (one per line)</label>
+                  <textarea rows="5" id="profileBios" placeholder="Bio for account one&#10;Bio for account two&#10;Bio for account three"></textarea>
+                </div>
+                <div>
+                  <label class="field-label">Links (one per line)</label>
+                  <textarea rows="5" id="profileLinks" placeholder="https://example.com/one&#10;https://example.com/two&#10;https://example.com/three"></textarea>
+                </div>
+              </div>
+              <p class="text-xs text-[var(--gray-500)]">Each line maps to one account in pool order — line 1 applies to the first account, line 2 to the second, and so on.</p>
+            </div>
+
+            <div class="flex items-center justify-between"><span class="text-sm font-medium">Professional creator account</span><div class="toggle on" data-toggle="proAccount"><div class="knob"></div></div></div>
+            <div class="flex items-center justify-between"><span class="text-sm font-medium">Upload in highest possible quality</span><div class="toggle on" data-toggle="hqUpload"><div class="knob"></div></div></div>
+            <div class="flex items-center justify-between"><span class="text-sm font-medium">Sharing and remixing</span><div class="toggle on" data-toggle="remixing"><div class="knob"></div></div></div>
+            <div class="flex items-center justify-between"><span class="text-sm font-medium">Interaction between accounts</span><div class="toggle" data-toggle="campInteraction"><div class="knob"></div></div></div>
+          </div>
+          <div><label class="field-label">Creator Account Category</label><select><option>Entertainment</option><option>Lifestyle</option><option>Business</option></select></div>
+        </div>
+
+        <!-- Step 3: Videos -->
+        <div class="wizard-step" data-wstep="3">
+          <h3 class="font-bold text-lg mb-4">Add Videos</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="choice-card selected" data-source="drive"><p class="font-semibold text-sm">Google Drive</p><p class="text-xs text-[var(--gray-500)] mt-1">Connect and sync a shared folder</p></div>
+            <div class="choice-card" data-source="local"><p class="font-semibold text-sm">Local Folder</p><p class="text-xs text-[var(--gray-500)] mt-1">Upload video files from this device</p></div>
+          </div>
+        </div>
+
+        <!-- Step 4: Posting data -->
+        <div class="wizard-step" data-wstep="4">
+          <h3 class="font-bold text-lg mb-4">Posting Data</h3>
+          <div class="grid grid-cols-1 gap-4">
+            <div><label class="field-label">Description</label><textarea rows="3" placeholder="Write a caption..."></textarea></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label class="field-label">Hashtags</label><input type="text" placeholder="#trend #viral"></div>
+              <div><label class="field-label">Location</label><input type="text" placeholder="e.g. New York"></div>
+              <div><label class="field-label">Featured Account</label><input type="text" placeholder="@handle"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Stats -->
+        <div class="wizard-step" data-wstep="5">
+          <h3 class="font-bold text-lg mb-4">Campaign Stats vs PRD Formula</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold">1,240 / 1,240</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold">184 / 184</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold">176 / 176</p></div>
+          </div>
+          <span class="badge badge-ready mb-5" style="display:inline-flex;">Matches PRD formula — ready to launch</span>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="field-label">Maintenance preset used during campaign</label>
+              <select id="campaignDuringMaintenanceSelect"></select>
+              <p class="text-xs text-[var(--gray-500)] mt-2">Applied to the pool's accounts while this campaign is active.</p>
+            </div>
+            <div>
+              <label class="field-label">Maintenance preset used after campaign</label>
+              <select id="campaignAfterMaintenanceSelect"></select>
+              <p class="text-xs text-[var(--gray-500)] mt-2">Applied once the campaign finishes, until the pool is assigned again.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between mt-8 pt-6 border-t border-[var(--line)]">
+          <button class="btn-secondary" id="wizardBack" onclick="wizardNav(-1)" disabled>Back</button>
+          <button class="btn-primary" id="wizardNext" onclick="wizardNav(1)">Next</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="modal" id="addCloudphoneModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-4">Add Cloudphone</h3>
+    <div class="flex flex-col gap-4 mb-6">
+      <div><label class="field-label">Device Name</label><input type="text" id="cpNameInput" placeholder="e.g. Phone-07"></div>
+      <p class="text-xs text-[var(--gray-500)]">Instagram, TikTok and YouTube will be installed automatically.</p>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('addCloudphoneModal')">Cancel</button>
+      <button class="btn-primary" onclick="addCloudphone()">Add Cloudphone</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="addProxyModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-4">Add Proxy</h3>
+    <div class="flex flex-col gap-4 mb-6">
+      <div><label class="field-label">Proxy Address</label><input type="text" id="proxyAddrInput" placeholder="e.g. 192.168.1.10:8080"></div>
+      <div><label class="field-label">Attach to Cloudphone</label><select id="proxyAttachSelect"></select></div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('addProxyModal')">Cancel</button>
+      <button class="btn-primary" onclick="addProxy()">Add Proxy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="addBrandModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-4">Add Brand</h3>
+    <div class="mb-6"><label class="field-label">Brand Name</label><input type="text" id="brandNameInput" placeholder="e.g. Nova Skin"></div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('addBrandModal')">Cancel</button>
+      <button class="btn-primary" onclick="addBrand()">Add Brand</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="addProjectModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-1">Add Project</h3>
+    <p class="text-sm text-[var(--gray-500)] mb-4">Adding a project to <span class="font-semibold text-[var(--ink)]" id="addProjectBrandName">—</span></p>
+    <div class="mb-6"><label class="field-label">Project Name</label><input type="text" id="projectNameInput" placeholder="e.g. Q4 Launch"></div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('addProjectModal')">Cancel</button>
+      <button class="btn-primary" onclick="addProject()">Add Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="addPoolModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-4">Create Account Pool</h3>
+    <div class="flex flex-col gap-4 mb-6">
+      <div><label class="field-label">Pool Name</label><input type="text" id="poolNameInput" placeholder="e.g. Pool 1"></div>
+      <div><label class="field-label">Platform</label><select id="poolPlatformSelect"><option>Instagram</option><option>TikTok</option><option>YouTube</option></select></div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('addPoolModal')">Cancel</button>
+      <button class="btn-primary" onclick="addPool()">Create Pool</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="bulkLoginModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-1">Bulk Login</h3>
+    <p class="text-sm text-[var(--gray-500)] mb-4">Adding accounts to <span class="font-semibold text-[var(--ink)]" id="bulkLoginPoolName">Pool 1</span></p>
+    <div class="flex flex-col gap-4 mb-6">
+      <div>
+        <label class="field-label">Accounts (one per line — username:password)</label>
+        <textarea id="bulkLoginTextarea" rows="8" placeholder="user1:password1&#10;user2:password2&#10;user3:password3"></textarea>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium">Change language to English</span>
+        <div class="toggle on" data-toggle="bulkLoginLang"><div class="knob"></div></div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('bulkLoginModal')">Cancel</button>
+      <button class="btn-primary" onclick="submitBulkLogin()">Log In Accounts</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="poolAccountsModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-1">Logged Accounts</h3>
+    <p class="text-sm text-[var(--gray-500)] mb-4"><span class="font-semibold text-[var(--ink)]" id="poolAccountsName">Pool 1</span></p>
+    <div class="flex flex-col gap-2 mb-6 max-h-[50vh] overflow-y-auto" id="poolAccountsList"></div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('poolAccountsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // ---------- Navigation ----------
+  const titles = {
+    dashboard:'Dashboard',
+    cloudphones:'Cloudphones',
+    brands:'Brands & Projects',
+    accounts:'Accounts & Warmup',
+    campaigns:'Campaigns'
+  };
+  document.getElementById('sidebarNav').addEventListener('click', (e) => {
+    const link = e.target.closest('.sidebar-link');
+    if(!link) return;
+    document.querySelectorAll('#sidebarNav .sidebar-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    const page = link.dataset.page;
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.getElementById('pageTitle').textContent = titles[page];
+  });
+  document.getElementById('sidebarNav').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.target.click(); }
+  });
+
+  // ---------- Range / split pill tabs ----------
+  document.querySelectorAll('.pill-tab[data-range]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.pill-tab[data-range]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.pill-tab[data-split]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.pill-tab[data-split]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // ---------- Choice cards ----------
+  document.querySelectorAll('#providerChoices .choice-card, #targetChoices .choice-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      card.parentElement.querySelectorAll('.choice-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('[data-source]').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-source]').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+  });
+
+  // ---------- Toggles ----------
+  document.addEventListener('click', (e)=>{
+    const t = e.target.closest('.toggle');
+    if(!t) return;
+    t.classList.toggle('on');
+    if(t.id === 'changeProfileToggle'){
+      document.getElementById('changeProfilePanel').style.display = t.classList.contains('on') ? 'flex' : 'none';
+    }
+  });
+
+  document.getElementById('avatarFolderInput').addEventListener('change', function(){
+    const files = Array.from(this.files || []);
+    const summary = document.getElementById('avatarFolderSummary');
+    const pathField = document.getElementById('avatarFolderPath');
+    if(files.length === 0){
+      pathField.value = '';
+      summary.textContent = 'One image per account, assigned in folder order.';
+      return;
+    }
+    const folderName = (files[0].webkitRelativePath || files[0].name).split('/')[0];
+    pathField.value = folderName;
+    summary.textContent = `${files.length} image${files.length === 1 ? '' : 's'} found — assigned to accounts in folder order.`;
+  });
+
+  // ---------- Modals ----------
+  function openModal(id){ document.getElementById(id).classList.add('active'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+  document.querySelectorAll('.modal').forEach(m=>{
+    m.addEventListener('click', (e)=>{ if(e.target === m) m.classList.remove('active'); });
+  });
+
+  // ---------- Cloudphones / Proxies state ----------
+  let cloudphones = [];
+  let proxies = [];
+  let cpCounter = 0, proxyCounter = 0;
+
+  function renderCloudphones(){
+    const list = document.getElementById('cloudphoneList');
+    list.innerHTML = cloudphones.map(cp => `
+      <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
+        <div>
+          <p class="font-semibold text-sm">${cp.name}</p>
+          <p class="text-xs text-[var(--gray-500)]">Instagram · TikTok · YouTube installed</p>
+        </div>
+        <span class="badge ${cp.status==='Ready'?'badge-ready':cp.status==='Checking'?'badge-checking':'badge-notready'}">${cp.status}</span>
+      </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No cloudphones added yet.</p>`;
+    document.getElementById('cpCount').textContent = cloudphones.filter(c=>c.status==='Ready').length;
+    const sel = document.getElementById('proxyAttachSelect');
+    sel.innerHTML = cloudphones.map(cp=>`<option>${cp.name}</option>`).join('') || '<option disabled>Add a cloudphone first</option>';
+  }
+
+  function renderProxies(){
+    const list = document.getElementById('proxyList');
+    list.innerHTML = proxies.map(p => `
+      <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
+        <div>
+          <p class="font-semibold text-sm">${p.addr}</p>
+          <p class="text-xs text-[var(--gray-500)]">Attached to ${p.attached}</p>
+        </div>
+        <span class="badge ${p.status==='Ready'?'badge-ready':p.status==='Checking'?'badge-checking':'badge-notready'}">${p.status}</span>
+      </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No proxies added yet.</p>`;
+    document.getElementById('proxyCount').textContent = proxies.filter(p=>p.status==='Ready').length;
+  }
+
+  function addCloudphone(){
+    const name = document.getElementById('cpNameInput').value.trim();
+    if(!name) return;
+    cpCounter++;
+    const cp = { id: cpCounter, name, status:'Checking' };
+    cloudphones.push(cp);
+    renderCloudphones();
+    closeModal('addCloudphoneModal');
+    document.getElementById('cpNameInput').value = '';
+    setTimeout(()=>{ cp.status='Ready'; renderCloudphones(); }, 1400);
+  }
+
+  function addProxy(){
+    const addr = document.getElementById('proxyAddrInput').value.trim();
+    const attached = document.getElementById('proxyAttachSelect').value || 'None';
+    if(!addr) return;
+    proxyCounter++;
+    const p = { id: proxyCounter, addr, attached, status:'Checking' };
+    proxies.push(p);
+    renderProxies();
+    closeModal('addProxyModal');
+    document.getElementById('proxyAddrInput').value = '';
+    setTimeout(()=>{ p.status='Ready'; renderProxies(); }, 1400);
+  }
+
+  renderCloudphones();
+  renderProxies();
+
+  // ---------- Brands / Projects ----------
+  // Each brand owns its own list of projects: { id, name, projects: [{id, name}] }
+  let brands = [];
+  let brandCounter = 0, projectCounter = 0;
+  let addProjectBrandId = null;
+
+  function renderBrands(){
+    document.getElementById('brandList').innerHTML = brands.map(b => `
+      <div class="card rounded-2xl p-6 shadow-soft">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-lg">${b.name}</span>
+            <span class="badge badge-dark">Active</span>
+          </div>
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="openAddProject(${b.id})">+ Add Project</button>
+        </div>
+        <div class="flex flex-col gap-2">
+          ${b.projects.map(p => `
+            <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
+              <span class="font-semibold text-sm">${p.name}</span>
+              <span class="badge badge-dark">Active</span>
+            </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No projects yet for this brand.</p>`}
+        </div>
+      </div>`).join('') || `<div class="card rounded-2xl p-6 shadow-soft text-center"><p class="text-sm text-[var(--gray-400)]">No brands yet. Add a brand to get started.</p></div>`;
+  }
+  function addBrand(){
+    const v = document.getElementById('brandNameInput').value.trim();
+    if(!v) return;
+    brandCounter++;
+    brands.push({ id: brandCounter, name: v, projects: [] });
+    renderBrands(); closeModal('addBrandModal');
+    document.getElementById('brandNameInput').value='';
+    renderCampaignGate();
+  }
+  function openAddProject(brandId){
+    addProjectBrandId = brandId;
+    const brand = brands.find(b => b.id === brandId);
+    document.getElementById('addProjectBrandName').textContent = brand.name;
+    document.getElementById('projectNameInput').value = '';
+    openModal('addProjectModal');
+  }
+  function addProject(){
+    const v = document.getElementById('projectNameInput').value.trim();
+    const brand = brands.find(b => b.id === addProjectBrandId);
+    if(!v || !brand) return;
+    projectCounter++;
+    brand.projects.push({ id: projectCounter, name: v });
+    renderBrands(); closeModal('addProjectModal');
+    document.getElementById('projectNameInput').value='';
+    renderCampaignGate();
+  }
+  renderBrands();
+
+  // ---------- Campaign brand/project gate ----------
+  function renderCampaignGate(){
+    const brandSel = document.getElementById('campaignGateBrand');
+    const projectSel = document.getElementById('campaignGateProject');
+    const startBtn = document.getElementById('campaignGateStart');
+    const hint = document.getElementById('campaignGateHint');
+    brandSel.innerHTML = brands.map(b=>`<option value="${b.id}">${b.name}</option>`).join('') || '<option disabled selected>No brands yet</option>';
+    updateGateProjects();
+    const selectedBrand = brands.find(b => b.id === +brandSel.value);
+    const ready = brands.length > 0 && selectedBrand && selectedBrand.projects.length > 0;
+    startBtn.disabled = !ready;
+    hint.textContent = brands.length === 0
+      ? 'Add a brand on the Brands & Projects page first.'
+      : (!selectedBrand || selectedBrand.projects.length === 0
+        ? 'Add a project to this brand on the Brands & Projects page first.'
+        : '');
+    hint.style.display = ready ? 'none' : 'block';
+  }
+  function updateGateProjects(){
+    const brandSel = document.getElementById('campaignGateBrand');
+    const projectSel = document.getElementById('campaignGateProject');
+    const brand = brands.find(b => b.id === +brandSel.value);
+    const projectList = brand ? brand.projects : [];
+    projectSel.innerHTML = projectList.map(p=>`<option value="${p.id}">${p.name}</option>`).join('') || '<option disabled selected>No projects yet</option>';
+  }
+  document.getElementById('campaignGateBrand').addEventListener('change', renderCampaignGate);
+  renderCampaignGate();
+
+  function startCampaignWizard(){
+    const brand = brands.find(b => b.id === +document.getElementById('campaignGateBrand').value);
+    const project = brand ? brand.projects.find(p => p.id === +document.getElementById('campaignGateProject').value) : null;
+    if(!brand || !project) return;
+    document.getElementById('campaignAssignedLabel').textContent = `${brand.name} / ${project.name}`;
+    document.getElementById('campaignGateCard').style.display = 'none';
+    document.getElementById('campaignWizardCard').style.display = 'block';
+    wstep = 1;
+    renderWizard();
+  }
+  function editCampaignAssignment(){
+    document.getElementById('campaignWizardCard').style.display = 'none';
+    document.getElementById('campaignGateCard').style.display = 'block';
+    renderCampaignGate();
+  }
+
+  // ---------- Account pools ----------
+  let pools = [];
+  let poolCounter = 0;
+
+  // Fixed activity budget a fresh account needs before it "reads" as warmed up.
+  const WARMUP_TARGET_MINUTES = 480;
+  // Fixed nominal duration used for maintenance session countdowns (open-ended in spirit,
+  // but modeled with a duration so the session table can show a consistent countdown format;
+  // "Stop Session" ends it early at any time).
+  const MAINTENANCE_TARGET_DAYS = 7;
+
+  // ---------- Preset library ----------
+  // Each entry: { id, name, mode: 'warmup'|'maintenance', snapshot: {ranges, interactionEnabled, niche} }
+  let presetLibrary = [];
+  let presetCounter = 0;
+
+  // ---------- Sessions ----------
+  // Each entry: { id, poolId, presetId, mode: 'warmup'|'maintenance', startedAt (ms), durationMs }
+  // A pool may have at most one entry in this array at any time — starting a new session
+  // on a pool removes/replaces its previous entry.
+  let sessions = [];
+  let sessionCounter = 0;
+
+  function presetName(id){
+    const preset = presetLibrary.find(pr => pr.id === id);
+    return preset ? preset.name : null;
+  }
+
+  function sessionForPool(poolId){
+    return sessions.find(s => s.poolId === poolId) || null;
+  }
+
+  function renderPools(){
+    document.getElementById('poolList').innerHTML = pools.map(p=>{
+      const session = sessionForPool(p.id);
+      const sessionLabel = session
+        ? `${session.mode === 'warmup' ? 'Warmup' : 'Maintenance'} — ${presetName(session.presetId) || 'Unsaved'}`
+        : 'No active session';
+      return `
+      <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3 flex-wrap gap-3">
+        <div>
+          <p class="font-semibold text-sm">${p.name}</p>
+          <p class="text-xs text-[var(--gray-500)]">${p.platform} · <span class="cursor-pointer underline decoration-dotted" onclick="openPoolAccounts(${p.id})">${p.accountCount || 0} accounts</span></p>
+          <p class="text-xs text-[var(--gray-400)] mt-1">
+            Active session: <span class="font-semibold text-[var(--gray-700)]">${sessionLabel}</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="badge ${p.status==='Ready for campaign'?'badge-ready':p.status==='Warming up'?'badge-warming':'badge-notready'}">${p.status}</span>
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="openPoolAccounts(${p.id})">View Accounts</button>
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="openBulkLogin(${p.id})">Bulk Login</button>
+        </div>
+      </div>`;
+    }).join('') || `<p class="text-sm text-[var(--gray-400)]">No account pools yet.</p>`;
+  }
+  function addPool(){
+    const name = document.getElementById('poolNameInput').value.trim();
+    const platform = document.getElementById('poolPlatformSelect').value;
+    if(!name) return;
+    poolCounter++;
+    pools.push({ id: poolCounter, name, platform, status:'Not ready', accountCount: 0 });
+    renderPools(); closeModal('addPoolModal');
+    document.getElementById('poolNameInput').value='';
+    renderSessionPoolSelect();
+  }
+  renderPools();
+  renderPresetLibrary();
+
+  // ---------- Bulk login ----------
+  let bulkLoginPoolId = null;
+  function openBulkLogin(poolId){
+    bulkLoginPoolId = poolId;
+    const pool = pools.find(p => p.id === poolId);
+    document.getElementById('bulkLoginPoolName').textContent = pool.name;
+    document.getElementById('bulkLoginTextarea').value = '';
+    openModal('bulkLoginModal');
+  }
+  function submitBulkLogin(){
+    const pool = pools.find(p => p.id === bulkLoginPoolId);
+    if(!pool) return;
+    const lines = document.getElementById('bulkLoginTextarea').value.split('\n').map(l => l.trim()).filter(Boolean);
+    if(lines.length === 0) return;
+    const langToEnglish = document.querySelector('[data-toggle="bulkLoginLang"]').classList.contains('on');
+    if(!pool.accounts) pool.accounts = [];
+    lines.forEach(line => {
+      const [username] = line.split(':');
+      pool.accounts.push({ username: username || line, langToEnglish });
+    });
+    pool.accountCount = pool.accounts.length;
+    renderPools();
+    closeModal('bulkLoginModal');
+  }
+
+  // ---------- View logged accounts ----------
+  function openPoolAccounts(poolId){
+    const pool = pools.find(p => p.id === poolId);
+    if(!pool) return;
+    document.getElementById('poolAccountsName').textContent = pool.name;
+    const accounts = pool.accounts || [];
+    const isReady = pool.status === 'Ready for campaign';
+    document.getElementById('poolAccountsList').innerHTML = accounts.map(a => `
+      <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
+        <span class="font-semibold text-sm">${a.username}</span>
+        <div class="flex items-center gap-2">
+          ${a.langToEnglish ? '<span class="badge badge-notready">EN</span>' : ''}
+          <span class="badge ${isReady ? 'badge-ready' : 'badge-notready'}">${isReady ? 'Ready for campaign' : 'Not ready'}</span>
+        </div>
+      </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No accounts logged in yet — use Bulk Login to add some.</p>`;
+    openModal('poolAccountsModal');
+  }
+
+  // ---------- Preset builder: shared range-slider engine (parameterized per builder) ----------
+  // Each builder ('warmup' | 'maintenance') gets its own fully independent state bucket so
+  // dragging a slider in one never touches the other — see builders[key] below.
+  const RANGE_FIELD_DEFS = [
+    { key:'timeWindow', min:0, max:24, step:1, valMin:10, valMax:22 },
+    { key:'sessionsPerDay', min:1, max:10, step:1, valMin:3, valMax:8 },
+    { key:'minutesPerSession', min:5, max:30, step:1, valMin:10, valMax:25 },
+    { key:'delayBetween', min:0, max:5, step:0.1, valMin:1, valMax:3, unit:'s' },
+    { key:'holdOnReel', min:0, max:12, step:0.5, valMin:2, valMax:8, unit:'s' },
+    { key:'skipDelay', min:0, max:3, step:0.1, valMin:0.3, valMax:1.5, unit:'s' },
+    { key:'repeatViewCount', min:1, max:5, step:1, valMin:1, valMax:3 },
+    { key:'likes', min:0, max:30, step:1, valMin:5, valMax:15, unit:'%' },
+    { key:'shares', min:0, max:10, step:1, valMin:0, valMax:2, unit:'%' },
+    { key:'saves', min:0, max:15, step:1, valMin:1, valMax:5, unit:'%' },
+    { key:'reposts', min:0, max:5, step:1, valMin:0, valMax:1, unit:'%' },
+    { key:'backSwipes', min:0, max:15, step:1, valMin:1, valMax:5, unit:'%' },
+    { key:'skipped', min:0, max:50, step:1, valMin:10, valMax:30, unit:'%' },
+    { key:'repeatViews', min:0, max:15, step:1, valMin:1, valMax:5, unit:'%' },
+    { key:'comments', min:0, max:5, step:1, valMin:0, valMax:2, unit:'%' },
+    { key:'burstsPerSession', min:0, max:6, step:1, valMin:1, valMax:3 },
+    { key:'accelSpeed', min:100, max:400, step:10, valMin:150, valMax:300, unit:'%' },
+  ];
+  const PRESET_STEP_NAMES = {1:'Schedule',2:'Pacing & rhythm',3:'Engagement',4:'Acceleration bursts',5:'Interaction between accounts'};
+  const PRESET_TOTAL_STEPS = 5;
+
+  function fieldHtml(def){
+    const unitAttr = def.unit ? ` data-unit="${def.unit}"` : '';
+    return `data-range="${def.key}" data-min="${def.min}" data-max="${def.max}" data-step="${def.step}" data-val-min="${def.valMin}" data-val-max="${def.valMax}"${unitAttr}`;
+  }
+
+  function rangeFieldBlock(def, label, desc, numStep){
+    return `<div class="range-field" ${fieldHtml(def)}>
+      <p class="font-semibold text-sm mb-1">${label}</p>
+      <p class="text-xs text-[var(--gray-500)] mb-3">${desc}</p>
+      <div class="range-track mb-3"><div class="range-fill"></div><div class="range-handle" data-handle="min"></div><div class="range-handle" data-handle="max"></div></div>
+      <div class="grid grid-cols-2 gap-3"><div><label class="field-label">Min</label><input type="number"${numStep?` step="${numStep}"`:''} class="range-input" data-handle="min"></div><div><label class="field-label">Max</label><input type="number"${numStep?` step="${numStep}"`:''} class="range-input" data-handle="max"></div></div>
+    </div>`;
+  }
+
+  // Builds the step-list + step-content + summary-panel markup for one builder instance.
+  // `p` is the id prefix ('warmup' or 'maintenance') used for every DOM id inside.
+  function builderStepsMarkup(p){
+    const def = key => RANGE_FIELD_DEFS.find(d => d.key === key);
+    const stepList = `
+      <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-2 px-1">Configuration</p>
+      <div class="preset-nav-item active" data-preset-step="1" data-builder="${p}">
+        <span class="preset-nav-icon">📅</span>
+        <span><span class="preset-nav-label">Schedule</span><span class="preset-nav-sub" id="${p}NavSubSchedule">3–8 × 10–25 min</span></span>
+      </div>
+      <div class="preset-nav-item" data-preset-step="2" data-builder="${p}">
+        <span class="preset-nav-icon">⏱️</span>
+        <span><span class="preset-nav-label">Pacing &amp; rhythm</span><span class="preset-nav-sub" id="${p}NavSubPacing">Hold 2–8s</span></span>
+      </div>
+      <div class="preset-nav-item" data-preset-step="3" data-builder="${p}">
+        <span class="preset-nav-icon">✨</span>
+        <span><span class="preset-nav-label">Engagement</span><span class="preset-nav-sub" id="${p}NavSubEngagement">5–15% likes · 0–2% com...</span></span>
+      </div>
+      <div class="preset-nav-item" data-preset-step="4" data-builder="${p}">
+        <span class="preset-nav-icon">⚡</span>
+        <span><span class="preset-nav-label">Acceleration bursts</span><span class="preset-nav-sub" id="${p}NavSubBursts">1–3 bursts</span></span>
+      </div>
+      <div class="preset-nav-item" data-preset-step="5" data-builder="${p}">
+        <span class="preset-nav-icon">👥</span>
+        <span><span class="preset-nav-label">Interaction between accounts</span><span class="preset-nav-sub" id="${p}NavSubInteraction">Disabled</span></span>
+      </div>`;
+
+    const stepContent = `
+      <p class="text-[.7rem] font-semibold text-[var(--gray-400)] uppercase tracking-wider mb-1" id="${p}PresetStepEyebrow">Step 1 of 5</p>
+
+      <div class="preset-step active" data-preset-content="1">
+        <h4 class="font-bold text-xl mb-1">Schedule</h4>
+        <p class="text-sm text-[var(--gray-500)] mb-5 leading-relaxed">When and how often this session runs. The scheduler samples a fresh value from each range every morning so two days never look the same.</p>
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-4">
+          <p class="font-semibold text-sm mb-1">Daily time window</p>
+          <p class="text-xs text-[var(--gray-500)] mb-4 leading-relaxed">Sessions only get scheduled inside this clock window — keeps activity on a believable daily rhythm.</p>
+          <div class="range-track mb-2" ${fieldHtml(def('timeWindow'))}>
+            <div class="range-fill"></div><div class="range-handle" data-handle="min"></div><div class="range-handle" data-handle="max"></div>
+          </div>
+          <div class="flex justify-between text-[.7rem] text-[var(--gray-400)] mb-4"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+          <div class="grid grid-cols-2 gap-4 mb-2">
+            <div><label class="field-label">Start time</label><input type="text" readonly id="${p}TimeWindowMinLabel" value="10:00"></div>
+            <div><label class="field-label">End time</label><input type="text" readonly id="${p}TimeWindowMaxLabel" value="22:00"></div>
+          </div>
+          <p class="text-xs text-[var(--gray-500)]">Window <span id="${p}TimeWindowSummary">10:00–22:00 (12.0h window)</span></p>
+        </div>
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)]">
+          <div class="grid grid-cols-2 gap-6">
+            ${rangeFieldBlock(def('sessionsPerDay'), 'Sessions per day', 'How many sessions get scheduled inside the day window.')}
+            ${rangeFieldBlock(def('minutesPerSession'), 'Minutes per session', 'Length of one individual session.')}
+          </div>
+        </div>
+      </div>
+
+      <div class="preset-step" data-preset-content="2">
+        <h4 class="font-bold text-xl mb-1">Pacing &amp; rhythm</h4>
+        <p class="text-sm text-[var(--gray-500)] mb-5 leading-relaxed">How fast the engine scrolls — pause between actions, hold time per reel, plus the fine-grained pacing for skip and repeat behaviours.</p>
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${rangeFieldBlock(def('delayBetween'), 'Delay between actions', 'Short pause between sub-actions on the same reel.', '0.1')}
+            ${rangeFieldBlock(def('holdOnReel'), 'Hold on a reel', "How long the engine watches each reel before deciding what's next.", '0.5')}
+            ${rangeFieldBlock(def('skipDelay'), 'Skip delay', 'Pause before the actual skip swipe — simulates user hesitation.', '0.1')}
+            ${rangeFieldBlock(def('repeatViewCount'), 'Repeat view count', 'When repeating, how many back-and-forward cycles.')}
+          </div>
+        </div>
+      </div>
+
+      <div class="preset-step" data-preset-content="3">
+        <h4 class="font-bold text-xl mb-1">Engagement</h4>
+        <p class="text-sm text-[var(--gray-500)] mb-5 leading-relaxed">What % of viewed reels trigger each action. Each percentage is an independent roll on every reel — the empirical rate converges inside the range over hundreds of reels.</p>
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${rangeFieldBlock(def('likes'), 'Likes', 'Tap heart or double-tap centre.')}
+            ${rangeFieldBlock(def('shares'), 'Shares', 'Open send-to sheet then back out.')}
+            ${rangeFieldBlock(def('saves'), 'Saves', 'Tap the bookmark icon.')}
+            ${rangeFieldBlock(def('reposts'), 'Reposts', 'Tap repost / remix.')}
+            ${rangeFieldBlock(def('backSwipes'), 'Back swipes', 'Swipe down to revisit a reel.')}
+            ${rangeFieldBlock(def('skipped'), 'Skipped', 'Move on after a brief pause.')}
+            ${rangeFieldBlock(def('repeatViews'), 'Repeat views', 'Watch a reel multiple times.')}
+            ${rangeFieldBlock(def('comments'), 'Comments', 'Post a comment picked at random from the pool below.')}
+          </div>
+        </div>
+      </div>
+
+      <div class="preset-step" data-preset-content="4">
+        <h4 class="font-bold text-xl mb-1">Acceleration bursts</h4>
+        <p class="text-sm text-[var(--gray-500)] mb-5 leading-relaxed">Brief windows (15–45s) during which holds and delays are compressed by the speed multiplier — mimics a user briefly scrolling faster, then settling back.</p>
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ${rangeFieldBlock(def('burstsPerSession'), 'Bursts per session', 'How many acceleration windows occur in one session.')}
+            ${rangeFieldBlock(def('accelSpeed'), 'Acceleration speed', '100 = same speed, 200 = 2× faster, 300 = 3× faster.')}
+          </div>
+        </div>
+      </div>
+
+      <div class="preset-step" data-preset-content="5">
+        <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-2">Optional</p>
+        <h4 class="font-bold text-xl mb-1">Interaction between accounts</h4>
+        <p class="text-sm text-[var(--gray-500)] mb-5 leading-relaxed">Occasionally break out of the feed to visit a teammate's profile from the same pool — a light touch that mimics organic peer engagement. Off by default; enable only when the pool has warmed teammates worth cross-visiting.</p>
+        <div class="card rounded-xl p-5 !border-[var(--gray-100)] flex items-center justify-between gap-4">
+          <div>
+            <p class="font-semibold text-sm mb-1">Enable interaction between accounts</p>
+            <p class="text-xs text-[var(--gray-500)] leading-relaxed">Occasionally visit a teammate's profile from the same pool during warmup — likes / watches one reel / returns.</p>
+          </div>
+          <div class="toggle" data-toggle="interactionBetweenAccounts" id="${p}InteractionToggle"><div class="knob"></div></div>
+        </div>
+      </div>
+
+      <div class="flex justify-between mt-6 pt-5 border-t border-[var(--line)]">
+        <button class="btn-secondary" id="${p}PresetBack" onclick="presetNav('${p}', -1)" disabled>Back</button>
+        <button class="btn-primary" id="${p}PresetNext" onclick="presetNav('${p}', 1)">Pacing &amp; rhythm</button>
+      </div>`;
+
+    const summaryPanel = `
+      <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] h-fit sticky top-6">
+        <div class="rounded-lg bg-white border border-[var(--gray-200)] px-3 py-2.5 mb-4" id="${p}DurationBlock" style="${p === 'maintenance' ? 'display:none;' : ''}">
+          <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-1">Estimated warmup duration</p>
+          <p class="text-xl font-extrabold tracking-tight" id="${p}DurationDays">3.0 days</p>
+          <p class="text-[.7rem] text-[var(--gray-500)]" id="${p}DurationDetail">Based on this preset's daily activity</p>
+        </div>
+        <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-2">Expected day</p>
+        <p class="text-2xl font-extrabold tracking-tight mb-1"><span id="${p}ExpectedMinDay">96</span> <span class="text-sm font-medium text-[var(--gray-500)]">min/day</span></p>
+        <p class="text-xs text-[var(--gray-500)] mb-4"><span id="${p}ExpectedSessions">5.5</span> sessions × <span id="${p}ExpectedAvgMin">18</span> min avg</p>
+        <div class="border-t border-[var(--gray-200)] pt-4 mb-4">
+          <p class="text-xs text-[var(--gray-500)] mb-1">Reels viewed / session</p>
+          <p class="font-bold text-sm" id="${p}ExpectedReels">≈ 78</p>
+        </div>
+        <div class="border-t border-[var(--gray-200)] pt-4 mb-4">
+          <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-2">Engagement / session</p>
+          <div class="flex flex-col gap-2 text-xs">
+            <div class="flex justify-between"><span>Likes</span><span class="font-semibold" id="${p}SumLikes">7.8</span></div>
+            <div class="flex justify-between"><span>Comments</span><span class="font-semibold" id="${p}SumComments">0.8</span></div>
+            <div class="flex justify-between"><span>Saves</span><span class="font-semibold" id="${p}SumSaves">2.3</span></div>
+            <div class="flex justify-between"><span>Shares</span><span class="font-semibold" id="${p}SumShares">0.8</span></div>
+            <div class="flex justify-between"><span>Reposts</span><span class="font-semibold" id="${p}SumReposts">0.4</span></div>
+          </div>
+        </div>
+        <div class="border-t border-[var(--gray-200)] pt-4 mb-4">
+          <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-2">Behavior / session</p>
+          <div class="flex flex-col gap-2 text-xs">
+            <div class="flex justify-between"><span>Skipped</span><span class="font-semibold" id="${p}SumSkipped">16</span></div>
+            <div class="flex justify-between"><span>Repeats</span><span class="font-semibold" id="${p}SumRepeats">2.3</span></div>
+            <div class="flex justify-between"><span>Accel bursts</span><span class="font-semibold" id="${p}SumBursts">2.0</span></div>
+          </div>
+        </div>
+        <div class="border-t border-[var(--gray-200)] pt-4">
+          <div class="rounded-lg bg-white border border-[var(--gray-200)] px-3 py-2 mb-2">
+            <p class="text-xs font-semibold">Over 30 sessions</p>
+            <p class="text-[.7rem] text-[var(--gray-500)]" id="${p}Over30Summary">≈ 233 likes, 70 saves, 23 shares total</p>
+          </div>
+          <div class="flex gap-3">
+            <button class="btn-primary flex-1 !text-xs !py-2" onclick="saveBuilderPreset('${p}')">Save preset</button>
+          </div>
+        </div>
+      </div>`;
+
+    return { stepList, stepContent, summaryPanel };
+  }
+
+  // ---------- Independent builder state: one bucket per builder key ('warmup' | 'maintenance') ----------
+  const builders = {
+    warmup: { rangeState:{}, rangeDefaults:{}, interactionEnabled:false, presetStep:1, loadedPresetId:null },
+    maintenance: { rangeState:{}, rangeDefaults:{}, interactionEnabled:false, presetStep:1, loadedPresetId:null },
+  };
+
+  ['warmup','maintenance'].forEach(p => {
+    const { stepList, stepContent, summaryPanel } = builderStepsMarkup(p);
+    document.getElementById(p + 'PresetStepList').innerHTML = stepList;
+    document.getElementById(p + 'PresetStepContent').innerHTML = stepContent;
+    document.getElementById(p + 'SummaryPanel').innerHTML = summaryPanel;
+  });
+
+  function fmtRangeVal(field, v){
+    const unit = field.dataset.unit || '';
+    const step = parseFloat(field.dataset.step || '1');
+    const decimals = step < 1 ? 1 : 0;
+    return v.toFixed(decimals) + unit;
+  }
+
+  function builderCard(p){ return document.getElementById(p + 'BuilderCard'); }
+
+  function layoutRange(p, field){
+    const min = parseFloat(field.dataset.min), max = parseFloat(field.dataset.max);
+    const key = field.dataset.range;
+    const st = builders[p].rangeState[key];
+    const fill = field.querySelector('.range-fill');
+    const hMin = field.querySelector('.range-handle[data-handle="min"]');
+    const hMax = field.querySelector('.range-handle[data-handle="max"]');
+    const pctMin = ((st.min - min) / (max - min)) * 100;
+    const pctMax = ((st.max - min) / (max - min)) * 100;
+    hMin.style.left = pctMin + '%';
+    hMax.style.left = pctMax + '%';
+    fill.style.left = pctMin + '%';
+    fill.style.width = (pctMax - pctMin) + '%';
+    const inputMin = field.querySelector('.range-input[data-handle="min"]');
+    const inputMax = field.querySelector('.range-input[data-handle="max"]');
+    if(inputMin) inputMin.value = fmtRangeVal(field, st.min);
+    if(inputMax) inputMax.value = fmtRangeVal(field, st.max);
+    if(key === 'timeWindow'){
+      const toClock = v => String(Math.floor(v)).padStart(2,'0') + ':' + (v % 1 ? '30' : '00');
+      document.getElementById(p + 'TimeWindowMinLabel').value = toClock(st.min);
+      document.getElementById(p + 'TimeWindowMaxLabel').value = toClock(st.max);
+      document.getElementById(p + 'TimeWindowSummary').textContent = `${toClock(st.min)}–${toClock(st.max)} (${(st.max - st.min).toFixed(1)}h window)`;
+    }
+  }
+
+  function layoutAllRanges(p){
+    builderCard(p).querySelectorAll('.range-track[data-range], .range-field[data-range]').forEach(field => layoutRange(p, field));
+  }
+
+  function initRange(p, field){
+    const key = field.dataset.range;
+    const b = builders[p];
+    b.rangeDefaults[key] = { min: parseFloat(field.dataset.valMin), max: parseFloat(field.dataset.valMax) };
+    b.rangeState[key] = { ...b.rangeDefaults[key] };
+    layoutRange(p, field);
+
+    const track = field.querySelector('.range-track');
+    const min = parseFloat(field.dataset.min), max = parseFloat(field.dataset.max), step = parseFloat(field.dataset.step || '1');
+
+    function valueFromClientX(clientX){
+      const rect = track.getBoundingClientRect();
+      let pct = (clientX - rect.left) / rect.width;
+      pct = Math.min(1, Math.max(0, pct));
+      let v = min + pct * (max - min);
+      v = Math.round(v / step) * step;
+      return Math.min(max, Math.max(min, v));
+    }
+
+    function startDrag(handleType){
+      return function(e){
+        e.preventDefault();
+        const move = (ev) => {
+          const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+          let v = valueFromClientX(clientX);
+          const st = b.rangeState[key];
+          if(handleType === 'min') st.min = Math.min(v, st.max);
+          else st.max = Math.max(v, st.min);
+          layoutRange(p, field);
+          updateExpectedDay(p);
+        };
+        const up = () => {
+          window.removeEventListener('mousemove', move);
+          window.removeEventListener('mouseup', up);
+          window.removeEventListener('touchmove', move);
+          window.removeEventListener('touchend', up);
+        };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        window.addEventListener('touchmove', move, {passive:false});
+        window.addEventListener('touchend', up);
+      };
+    }
+    field.querySelector('.range-handle[data-handle="min"]').addEventListener('mousedown', startDrag('min'));
+    field.querySelector('.range-handle[data-handle="min"]').addEventListener('touchstart', startDrag('min'));
+    field.querySelector('.range-handle[data-handle="max"]').addEventListener('mousedown', startDrag('max'));
+    field.querySelector('.range-handle[data-handle="max"]').addEventListener('touchstart', startDrag('max'));
+
+    const inputMin = field.querySelector('.range-input[data-handle="min"]');
+    const inputMax = field.querySelector('.range-input[data-handle="max"]');
+    if(inputMin) inputMin.addEventListener('change', () => {
+      const st = b.rangeState[key];
+      st.min = Math.min(Math.max(min, parseFloat(inputMin.value) || min), st.max);
+      layoutRange(p, field); updateExpectedDay(p);
+    });
+    if(inputMax) inputMax.addEventListener('change', () => {
+      const st = b.rangeState[key];
+      st.max = Math.max(Math.min(max, parseFloat(inputMax.value) || max), st.min);
+      layoutRange(p, field); updateExpectedDay(p);
+    });
+  }
+
+  ['warmup','maintenance'].forEach(p => {
+    builderCard(p).querySelectorAll('.range-track[data-range], .range-field[data-range]').forEach(field => initRange(p, field));
+  });
+
+  function avg(p, key){ const st = builders[p].rangeState[key]; return (st.min + st.max) / 2; }
+
+  function estimateWarmupDaysFromRanges(ranges){
+    if(!ranges || !ranges.sessionsPerDay || !ranges.minutesPerSession) return null;
+    const sessionsPerDay = (ranges.sessionsPerDay.min + ranges.sessionsPerDay.max) / 2;
+    const minutesPerSession = (ranges.minutesPerSession.min + ranges.minutesPerSession.max) / 2;
+    const dailyMinutes = sessionsPerDay * minutesPerSession;
+    if(!dailyMinutes) return null;
+    return WARMUP_TARGET_MINUTES / dailyMinutes;
+  }
+
+  function estimateWarmupDays(p){
+    return estimateWarmupDaysFromRanges(builders[p].rangeState);
+  }
+
+  function updateExpectedDay(p){
+    const b = builders[p];
+    const sessionsPerDay = avg(p, 'sessionsPerDay');
+    const minutesPerSession = avg(p, 'minutesPerSession');
+    const totalMin = sessionsPerDay * minutesPerSession;
+    document.getElementById(p + 'ExpectedMinDay').textContent = Math.round(totalMin);
+    document.getElementById(p + 'ExpectedSessions').textContent = sessionsPerDay.toFixed(1);
+    document.getElementById(p + 'ExpectedAvgMin').textContent = Math.round(minutesPerSession);
+
+    const durationBlock = document.getElementById(p + 'DurationBlock');
+    if(p === 'warmup'){
+      durationBlock.style.display = 'block';
+      const days = estimateWarmupDays(p);
+      document.getElementById(p + 'DurationDays').textContent = days ? `${days.toFixed(1)} days` : '—';
+      document.getElementById(p + 'DurationDetail').textContent = days
+        ? `${Math.round(totalMin)} min/day → ${WARMUP_TARGET_MINUTES} min total activity`
+        : "Set a schedule to see an estimate";
+    } else {
+      durationBlock.style.display = 'none';
+    }
+
+    const holdOnReel = avg(p, 'holdOnReel') || 5;
+    const reelsPerSession = Math.round((minutesPerSession * 60) / (holdOnReel + 2));
+    document.getElementById(p + 'ExpectedReels').textContent = '≈ ' + reelsPerSession;
+
+    const pct = key => (avg(p, key) || 0) / 100;
+    const likes = reelsPerSession * pct('likes');
+    const comments = reelsPerSession * pct('comments');
+    const saves = reelsPerSession * pct('saves');
+    const shares = reelsPerSession * pct('shares');
+    const reposts = reelsPerSession * pct('reposts');
+    const skipped = reelsPerSession * pct('skipped');
+    const repeats = reelsPerSession * pct('repeatViews');
+    const bursts = avg(p, 'burstsPerSession') || 0;
+
+    document.getElementById(p + 'SumLikes').textContent = likes.toFixed(1);
+    document.getElementById(p + 'SumComments').textContent = comments.toFixed(1);
+    document.getElementById(p + 'SumSaves').textContent = saves.toFixed(1);
+    document.getElementById(p + 'SumShares').textContent = shares.toFixed(1);
+    document.getElementById(p + 'SumReposts').textContent = reposts.toFixed(1);
+    document.getElementById(p + 'SumSkipped').textContent = Math.round(skipped);
+    document.getElementById(p + 'SumRepeats').textContent = repeats.toFixed(1);
+    document.getElementById(p + 'SumBursts').textContent = bursts.toFixed(1);
+
+    const rs = b.rangeState;
+    document.getElementById(p + 'NavSubSchedule').textContent = `${rs.sessionsPerDay.min}–${rs.sessionsPerDay.max} × ${rs.minutesPerSession.min}–${rs.minutesPerSession.max} min`;
+    document.getElementById(p + 'NavSubPacing').textContent = `Hold ${rs.holdOnReel.min}–${rs.holdOnReel.max}s`;
+    document.getElementById(p + 'NavSubEngagement').textContent = `${rs.likes.min}–${rs.likes.max}% likes · ${rs.comments.min}–${rs.comments.max}% com...`;
+    document.getElementById(p + 'NavSubBursts').textContent = `${rs.burstsPerSession.min}–${rs.burstsPerSession.max} bursts`;
+
+    const over30 = n => Math.round(n * 30);
+    document.getElementById(p + 'Over30Summary').textContent =
+      `≈ ${over30(likes)} likes, ${over30(saves)} saves, ${over30(shares)} shares total`;
+  }
+
+  // Interaction-between-accounts toggle updates its nav sub-label, per builder
+  ['warmup','maintenance'].forEach(p => {
+    document.getElementById(p + 'InteractionToggle').addEventListener('click', function(){
+      builders[p].interactionEnabled = this.classList.contains('on');
+      document.getElementById(p + 'NavSubInteraction').textContent = builders[p].interactionEnabled ? 'Enabled' : 'Disabled';
+    });
+  });
+
+  function snapshotPreset(p){
+    const b = builders[p];
+    const ranges = {};
+    Object.keys(b.rangeState).forEach(k => ranges[k] = { ...b.rangeState[k] });
+    return { ranges, interactionEnabled: b.interactionEnabled, niche: document.getElementById(p + 'NicheInput').value.trim() };
+  }
+
+  function applyPreset(p, preset){
+    const b = builders[p];
+    const source = preset ? preset.ranges : b.rangeDefaults;
+    Object.keys(b.rangeDefaults).forEach(k => {
+      b.rangeState[k] = { ...(source[k] || b.rangeDefaults[k]) };
+    });
+    b.interactionEnabled = preset ? preset.interactionEnabled : false;
+    layoutAllRanges(p);
+    const toggle = document.getElementById(p + 'InteractionToggle');
+    toggle.classList.toggle('on', b.interactionEnabled);
+    document.getElementById(p + 'NavSubInteraction').textContent = b.interactionEnabled ? 'Enabled' : 'Disabled';
+    setNiche(p, preset ? (preset.niche || '') : '');
+    updateExpectedDay(p);
+  }
+
+  function setNiche(p, value){
+    document.getElementById(p + 'NicheInput').value = value;
+    document.querySelectorAll('#' + p + 'NicheChips .pill-tab').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.niche === value);
+    });
+  }
+  ['warmup','maintenance'].forEach(p => {
+    document.querySelectorAll('#' + p + 'NicheChips .pill-tab').forEach(chip => {
+      chip.addEventListener('click', () => setNiche(p, chip.dataset.niche));
+    });
+    document.getElementById(p + 'NicheInput').addEventListener('input', function(){
+      document.querySelectorAll('#' + p + 'NicheChips .pill-tab').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.niche === this.value.trim());
+      });
+    });
+  });
+
+  // ---------- Builder: load / save presets (each builder authors its own mode only) ----------
+  function renderBuilderLoadSelect(p){
+    const sel = document.getElementById(p + 'LoadPresetSelect');
+    const options = presetLibrary.filter(pr => pr.mode === p);
+    sel.innerHTML = '<option value="">— New / unsaved —</option>' + options.map(pr => `<option value="${pr.id}">${pr.name}</option>`).join('');
+    sel.value = builders[p].loadedPresetId || '';
+  }
+  function loadPresetIntoBuilder(p){
+    const sel = document.getElementById(p + 'LoadPresetSelect');
+    const id = sel.value ? +sel.value : null;
+    builders[p].loadedPresetId = id;
+    const preset = presetLibrary.find(pr => pr.id === id);
+    applyPreset(p, preset ? preset.snapshot : null);
+  }
+  function saveBuilderPreset(p){
+    const snapshot = snapshotPreset(p);
+    const existing = presetLibrary.find(pr => pr.id === builders[p].loadedPresetId);
+    if(existing){
+      existing.snapshot = snapshot;
+      renderPresetLibrary();
+      renderSessionPresetSelect();
+      alert(`Saved changes to preset "${existing.name}".`);
+      return;
+    }
+    const name = (prompt('Name this preset for the library:', p === 'warmup' ? 'New Warmup Preset' : 'New Maintenance Preset') || '').trim();
+    if(!name) return;
+    presetCounter++;
+    const preset = { id: presetCounter, name, mode: p, snapshot };
+    presetLibrary.push(preset);
+    builders[p].loadedPresetId = preset.id;
+    renderBuilderLoadSelect(p);
+    renderPresetLibrary();
+    renderSessionPresetSelect();
+    renderMimicWarmupSelect();
+    alert(`Preset "${name}" saved to the library.`);
+  }
+
+  // ---------- Maintenance builder: one-time copy from a warmup preset ----------
+  function renderMimicWarmupSelect(){
+    const sel = document.getElementById('mimicWarmupSelect');
+    if(!sel) return;
+    const options = presetLibrary.filter(pr => pr.mode === 'warmup');
+    const prevValue = sel.value;
+    sel.innerHTML = options.map(pr => `<option value="${pr.id}">${pr.name}</option>`).join('') || '<option disabled selected>No warmup presets saved yet</option>';
+    if(options.some(pr => String(pr.id) === prevValue)) sel.value = prevValue;
+  }
+  function copyFromWarmupPreset(){
+    const sel = document.getElementById('mimicWarmupSelect');
+    const id = sel.value ? +sel.value : null;
+    const preset = presetLibrary.find(pr => pr.id === id);
+    if(!preset){ alert('Save a warmup preset first, then copy it here.'); return; }
+    // One-time copy: clone the snapshot's ranges into the maintenance builder's own state.
+    // No ongoing link is kept — editing the warmup preset afterward will not affect this.
+    applyPreset('maintenance', JSON.parse(JSON.stringify(preset.snapshot)));
+    alert(`Copied ranges from "${preset.name}" into the maintenance builder. Tweak as needed, then Save preset.`);
+  }
+
+  // ---------- Preset library management ----------
+  function renderPresetLibrary(){
+    const list = document.getElementById('presetLibraryList');
+    if(!list) return;
+    list.innerHTML = presetLibrary.map(pr => {
+      const usedBy = sessions.filter(s => s.presetId === pr.id).map(s => (pools.find(pl => pl.id === s.poolId) || {}).name).filter(Boolean);
+      return `
+      <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3 flex-wrap gap-3">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-semibold text-sm">${pr.name}</span>
+            <span class="badge ${pr.mode === 'warmup' ? 'badge-dark' : 'badge-active'}">${pr.mode === 'warmup' ? 'Warmup' : 'Maintenance'}</span>
+            ${pr.snapshot.niche ? `<span class="badge badge-notready">${pr.snapshot.niche}</span>` : ''}
+          </div>
+          <p class="text-xs text-[var(--gray-500)] mt-1">${usedBy.length ? `Used by: ${usedBy.join(', ')}` : 'Not currently running on any pool'}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="renamePreset(${pr.id})">Rename</button>
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="deletePreset(${pr.id})">Delete</button>
+        </div>
+      </div>`;
+    }).join('') || `<p class="text-sm text-[var(--gray-400)]">No saved presets yet. Save a warmup or maintenance configuration from a builder above to add one here.</p>`;
+  }
+  function renamePreset(id){
+    const preset = presetLibrary.find(pr => pr.id === id);
+    if(!preset) return;
+    const name = (prompt('Rename preset:', preset.name) || '').trim();
+    if(!name) return;
+    preset.name = name;
+    renderPresetLibrary();
+    renderPools();
+    renderBuilderLoadSelect('warmup');
+    renderBuilderLoadSelect('maintenance');
+    renderMimicWarmupSelect();
+    renderSessionPresetSelect();
+  }
+  function deletePreset(id){
+    const preset = presetLibrary.find(pr => pr.id === id);
+    if(!preset) return;
+    if(!confirm(`Delete preset "${preset.name}"? Any running sessions using it will be stopped.`)) return;
+    presetLibrary = presetLibrary.filter(pr => pr.id !== id);
+    sessions = sessions.filter(s => s.presetId !== id);
+    ['warmup','maintenance'].forEach(p => { if(builders[p].loadedPresetId === id) builders[p].loadedPresetId = null; });
+    renderPresetLibrary();
+    renderPools();
+    renderBuilderLoadSelect('warmup');
+    renderBuilderLoadSelect('maintenance');
+    renderMimicWarmupSelect();
+    renderSessionPresetSelect();
+    renderSessionConfig();
+  }
+
+  // ---------- Preset builder: step navigation (tracked per builder) ----------
+  function goToPresetStep(p, n){
+    builders[p].presetStep = n;
+    const card = builderCard(p);
+    card.querySelectorAll('.preset-nav-item').forEach(item => item.classList.toggle('active', +item.dataset.presetStep === n));
+    card.querySelectorAll('.preset-step').forEach(s => s.classList.toggle('active', +s.dataset.presetContent === n));
+    document.getElementById(p + 'PresetStepEyebrow').textContent = `Step ${n} of ${PRESET_TOTAL_STEPS}` + (n === 5 ? ' (optional)' : '');
+    document.getElementById(p + 'PresetBack').disabled = n === 1;
+    const nextBtn = document.getElementById(p + 'PresetNext');
+    nextBtn.textContent = n === PRESET_TOTAL_STEPS ? 'Save preset' : PRESET_STEP_NAMES[n + 1];
+  }
+  function presetNav(p, dir){
+    if(builders[p].presetStep === PRESET_TOTAL_STEPS && dir === 1){ saveBuilderPreset(p); return; }
+    const n = Math.min(PRESET_TOTAL_STEPS, Math.max(1, builders[p].presetStep + dir));
+    goToPresetStep(p, n);
+  }
+  ['warmup','maintenance'].forEach(p => {
+    builderCard(p).querySelectorAll('.preset-nav-item').forEach(item => {
+      item.addEventListener('click', () => goToPresetStep(p, +item.dataset.presetStep));
+      item.setAttribute('tabindex', '0');
+      item.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goToPresetStep(p, +item.dataset.presetStep); } });
+    });
+  });
+
+  // Initial render pass for both independent builders.
+  ['warmup','maintenance'].forEach(p => {
+    updateExpectedDay(p);
+    goToPresetStep(p, 1);
+    renderBuilderLoadSelect(p);
+  });
+  renderMimicWarmupSelect();
+
+  // ---------- Session Configuration: assign a preset to a pool, start/stop sessions ----------
+  let sessionSelectedMode = 'warmup';
+
+  function renderSessionPoolSelect(){
+    const sel = document.getElementById('sessionPoolSelect');
+    const prevValue = sel.value;
+    sel.innerHTML = pools.map(p => `<option value="${p.id}">${p.name} — ${p.platform}</option>`).join('') || '<option disabled selected>No account pools yet</option>';
+    if(pools.some(p => String(p.id) === prevValue)) sel.value = prevValue;
+    renderSessionPresetSelect();
+  }
+  function setSessionMode(mode){
+    sessionSelectedMode = mode;
+    document.getElementById('sessionModeWarmupBtn').classList.toggle('active', mode === 'warmup');
+    document.getElementById('sessionModeMaintenanceBtn').classList.toggle('active', mode === 'maintenance');
+    renderSessionPresetSelect();
+  }
+  function renderSessionPresetSelect(){
+    const sel = document.getElementById('sessionPresetSelect');
+    const options = presetLibrary.filter(pr => pr.mode === sessionSelectedMode);
+    sel.innerHTML = options.map(pr => `<option value="${pr.id}">${pr.name}</option>`).join('') || '<option disabled selected>No presets saved yet</option>';
+  }
+  function startSession(){
+    const poolId = +document.getElementById('sessionPoolSelect').value;
+    const presetId = +document.getElementById('sessionPresetSelect').value;
+    const pool = pools.find(p => p.id === poolId);
+    const preset = presetLibrary.find(pr => pr.id === presetId);
+    if(!pool){ alert('Create an account pool first.'); return; }
+    if(!preset){ alert(`Save a ${sessionSelectedMode} preset first.`); return; }
+    // Only one session per pool: starting a new one replaces whatever was running.
+    sessions = sessions.filter(s => s.poolId !== poolId);
+    sessionCounter++;
+    const durationDays = sessionSelectedMode === 'warmup'
+      ? (estimateWarmupDaysFromRanges(preset.snapshot.ranges) || 3)
+      : MAINTENANCE_TARGET_DAYS;
+    sessions.push({
+      id: sessionCounter,
+      poolId,
+      presetId,
+      mode: sessionSelectedMode,
+      startedAt: Date.now(),
+      durationMs: durationDays * 24 * 60 * 60 * 1000,
+    });
+    pool.status = sessionSelectedMode === 'warmup' ? 'Warming up' : 'Ready for campaign';
+    renderPools();
+    renderPresetLibrary();
+    renderSessionConfig();
+  }
+  function stopSession(sessionId){
+    sessions = sessions.filter(s => s.id !== sessionId);
+    renderPools();
+    renderPresetLibrary();
+    renderSessionConfig();
+  }
+
+  function fmtRemaining(ms){
+    if(ms <= 0) return 'Complete';
+    const totalHours = ms / (1000 * 60 * 60);
+    const d = Math.floor(totalHours / 24);
+    const hrs = Math.floor(totalHours % 24);
+    return `${d}d ${String(hrs).padStart(2,'0')}:00:00`;
+  }
+
+  function renderSessionConfig(){
+    const tbody = document.getElementById('sessionTableBody');
+    const empty = document.getElementById('sessionTableEmpty');
+    // Warmup sessions that have run out their estimated duration flip the pool to
+    // "Ready for campaign" automatically, same as the old startWarmup() countdown did.
+    let poolsChanged = false;
+    sessions.forEach(s => {
+      if(s.mode !== 'warmup') return;
+      const pool = pools.find(p => p.id === s.poolId);
+      if(pool && pool.status === 'Warming up' && Date.now() >= s.startedAt + s.durationMs){
+        pool.status = 'Ready for campaign';
+        poolsChanged = true;
+      }
+    });
+    if(poolsChanged) renderPools();
+    if(sessions.length === 0){
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    tbody.innerHTML = sessions.map(s => {
+      const pool = pools.find(p => p.id === s.poolId);
+      if(!pool) return '';
+      const remainingMs = Math.max(0, s.startedAt + s.durationMs - Date.now());
+      const remaining = s.mode === 'maintenance' && remainingMs === 0 ? 'Ongoing' : fmtRemaining(remainingMs);
+      return `<tr class="trow">
+        <td>${pool.name}</td>
+        <td><span class="badge ${s.mode === 'warmup' ? 'badge-dark' : 'badge-active'}">${s.mode === 'warmup' ? 'Warmup' : 'Maintenance'}</span> ${presetName(s.presetId) || 'Unsaved'}</td>
+        <td>${pool.accountCount || 0}</td>
+        <td>${remaining}</td>
+        <td><button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="stopSession(${s.id})">Stop</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  setInterval(() => { if(sessions.length) renderSessionConfig(); }, 1000);
+
+  renderSessionPoolSelect();
+  renderSessionConfig();
+
+  // ---------- Campaign wizard ----------
+  let wstep = 1;
+  const totalSteps = 5;
+  function renderWizard(){
+    document.querySelectorAll('.wizard-step').forEach(s=>s.classList.toggle('active', +s.dataset.wstep === wstep));
+    document.querySelectorAll('.step-dot').forEach(d=>{
+      const n = +d.dataset.step;
+      d.classList.toggle('active', n === wstep);
+      d.classList.toggle('done', n < wstep);
+    });
+    document.getElementById('wizardBack').disabled = wstep === 1;
+    document.getElementById('wizardNext').textContent = wstep === totalSteps ? 'Launch Campaign' : 'Next';
+    if(wstep === 2) renderCampaignPoolSelect();
+    if(wstep === 5) renderCampaignMaintenanceSelects();
+  }
+
+  function renderCampaignMaintenanceSelects(){
+    const maintenancePresets = presetLibrary.filter(pr => pr.mode === 'maintenance');
+    const options = '<option value="">— None —</option>' + maintenancePresets.map(pr => `<option value="${pr.id}">${pr.name}</option>`).join('');
+    ['campaignDuringMaintenanceSelect','campaignAfterMaintenanceSelect'].forEach(id => {
+      const sel = document.getElementById(id);
+      const prevValue = sel.value;
+      sel.innerHTML = options || '<option disabled selected>No maintenance presets saved yet</option>';
+      if(maintenancePresets.some(pr => String(pr.id) === prevValue)) sel.value = prevValue;
+    });
+  }
+
+  let selectedCampaignPoolIds = [];
+
+  function renderCampaignPoolSelect(){
+    const list = document.getElementById('campaignPoolChecklist');
+    selectedCampaignPoolIds = selectedCampaignPoolIds.filter(id => pools.some(p => p.id === id));
+    list.innerHTML = pools.map(p => {
+      const checked = selectedCampaignPoolIds.includes(p.id) ? 'checked' : '';
+      const ready = p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0;
+      return `
+      <label class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3 cursor-pointer">
+        <span class="flex items-center gap-3">
+          <input type="checkbox" value="${p.id}" onchange="toggleCampaignPool(${p.id}, this.checked)" ${checked}>
+          <span class="text-sm font-medium">${p.name} — ${p.platform}</span>
+        </span>
+        <span class="text-xs text-[var(--gray-500)]">${ready} ready / ${p.accountCount || 0} total</span>
+      </label>`;
+    }).join('') || '<p class="text-sm text-[var(--gray-400)]">No account pools yet — create one on the Accounts &amp; Warmup page.</p>';
+    updateCampaignPoolCounts();
+  }
+  function toggleCampaignPool(poolId, isChecked){
+    selectedCampaignPoolIds = selectedCampaignPoolIds.filter(id => id !== poolId);
+    if(isChecked) selectedCampaignPoolIds.push(poolId);
+    updateCampaignPoolCounts();
+  }
+  function updateCampaignPoolCounts(){
+    const selectedPools = pools.filter(p => selectedCampaignPoolIds.includes(p.id));
+    const total = selectedPools.reduce((sum, p) => sum + (p.accountCount || 0), 0);
+    const ready = selectedPools.reduce((sum, p) => sum + (p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0), 0);
+    document.getElementById('campaignPoolReady').textContent = ready;
+    document.getElementById('campaignPoolNotReady').textContent = total - ready;
+    document.getElementById('campaignPoolTotal').textContent = total;
+    document.getElementById('campaignPoolCount').textContent = selectedPools.length;
+  }
+
+  function setAvatarSource(source){
+    document.getElementById('avatarSourceFolderBtn').classList.toggle('active', source === 'folder');
+    document.getElementById('avatarSourceDriveBtn').classList.toggle('active', source === 'drive');
+    document.getElementById('avatarFolderBlock').style.display = source === 'folder' ? 'block' : 'none';
+    document.getElementById('avatarDriveBlock').style.display = source === 'drive' ? 'block' : 'none';
+  }
+
+  function wizardNav(dir){
+    if(wstep === totalSteps && dir === 1){
+      alert('Campaign launched.');
+      document.getElementById('campaignWizardCard').style.display = 'none';
+      document.getElementById('campaignGateCard').style.display = 'block';
+      return;
+    }
+    wstep = Math.min(totalSteps, Math.max(1, wstep + dir));
+    renderWizard();
+  }
+  renderWizard();
+</script>
+</body>
+</html>
