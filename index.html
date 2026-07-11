@@ -45,6 +45,7 @@
   @media (min-width:768px){ .md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} .md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));} .md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr));} .md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr));} }
   @media (min-width:1024px){
     .lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));}
     .lg\:grid-cols-\[1fr_360px\]{grid-template-columns:1fr 360px;}
     .lg\:grid-cols-\[220px_1fr_280px\]{grid-template-columns:220px 1fr 280px;}
   }
@@ -414,6 +415,114 @@
             </tr>
           </tbody>
         </table>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <h3 class="font-bold text-lg mb-4">All Brands Overview</h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-5">
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Views</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalViews">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Goal Region Views</p>
+            <p class="text-2xl font-extrabold" id="dashStatGoalRegionViews">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Projects</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalProjects">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Accounts</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalAccounts">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Videos</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalVideos">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Subscribers</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalSubscribers">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Likes</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalLikes">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Comments</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalComments">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Shares</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalShares">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Number of Clicks</p>
+            <p class="text-2xl font-extrabold" id="dashStatTotalClicks">0</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+          <div class="card rounded-2xl p-6 shadow-soft">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-lg">Top Projects</h3>
+              <select class="!w-auto"><option>Most Viewed</option></select>
+            </div>
+            <table><thead><tr><th>Project</th><th>Metrics</th></tr></thead><tbody id="dashTopProjectsBody"></tbody></table>
+            <p class="text-sm text-[var(--gray-400)] mt-3" id="dashTopProjectsEmpty">No projects yet.</p>
+          </div>
+          <div class="card rounded-2xl p-6 shadow-soft">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-lg">Top Accounts</h3>
+              <select class="!w-auto"><option>Most Viewed</option></select>
+            </div>
+            <table><thead><tr><th>Account</th><th>Metrics</th></tr></thead><tbody></tbody></table>
+            <p class="text-sm text-[var(--gray-400)] mt-3">No account data yet.</p>
+          </div>
+          <div class="card rounded-2xl p-6 shadow-soft">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-lg">Top Videos</h3>
+              <select class="!w-auto"><option>Most Viewed</option></select>
+            </div>
+            <table><thead><tr><th>Video</th><th>Views</th></tr></thead><tbody></tbody></table>
+            <p class="text-sm text-[var(--gray-400)] mt-3">No video data yet.</p>
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft mb-5">
+          <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20z"/></svg>
+            Views Geography
+          </h3>
+          <div class="rounded-xl flex items-center justify-center text-center" style="border:1.5px dashed var(--gray-200); padding:3rem 1rem;">
+            <div>
+              <p class="text-sm text-[var(--gray-500)]">Geography visualization will appear here as campaign data accumulates</p>
+              <p class="text-xs text-[var(--gray-400)] mt-1">Showing views from all locations</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft">
+          <h3 class="font-bold text-lg mb-4">Views Graph</h3>
+          <div class="flex items-end gap-6 h-40 pl-2">
+            <div class="flex flex-col justify-between h-full text-xs text-[var(--gray-400)]">
+              <span>4</span><span>3</span><span>2</span><span>1</span><span>0</span>
+            </div>
+            <div class="flex-1 h-full flex items-end">
+              <svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none">
+                <line x1="0" y1="100" x2="300" y2="100" stroke="var(--ink)" stroke-width="2"/>
+                <circle cx="0" cy="100" r="3" fill="var(--ink)"/>
+                <circle cx="100" cy="100" r="3" fill="var(--ink)"/>
+                <circle cx="200" cy="100" r="3" fill="var(--ink)"/>
+                <circle cx="300" cy="100" r="3" fill="var(--ink)"/>
+              </svg>
+            </div>
+          </div>
+          <div class="flex justify-between text-xs text-[var(--gray-400)] mt-2 pl-8">
+            <span>0</span><span>1</span><span>2</span><span>3</span>
+          </div>
+          <p class="text-xs text-[var(--gray-400)] text-center mt-1">days since work began</p>
         </div>
       </div>
     </section>
@@ -1266,7 +1375,30 @@
             </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No projects yet for this brand.</p>`}
         </div>
       </div>`).join('') || `<div class="card rounded-2xl p-6 shadow-soft text-center"><p class="text-sm text-[var(--gray-400)]">No brands yet. Add a brand to get started.</p></div>`;
+    renderDashboardOverview();
   }
+
+  function renderDashboardOverview(){
+    const allProjects = brands.flatMap(b => b.projects);
+    const sumField = (key) => brands.reduce((sum,b) => sum + (b.stats[key]||0), 0);
+    document.getElementById('dashStatTotalViews').textContent = sumField('totalViews');
+    document.getElementById('dashStatGoalRegionViews').textContent = sumField('goalRegionViews');
+    document.getElementById('dashStatTotalProjects').textContent = allProjects.length;
+    document.getElementById('dashStatTotalAccounts').textContent = brands.reduce((sum,b) => sum + b.projects.reduce((s,p)=>s+(p.stats.totalAccounts||0),0), 0);
+    document.getElementById('dashStatTotalVideos').textContent = sumField('totalVideos');
+    document.getElementById('dashStatTotalSubscribers').textContent = sumField('totalSubscribers');
+    document.getElementById('dashStatTotalLikes').textContent = sumField('totalLikes');
+    document.getElementById('dashStatTotalComments').textContent = sumField('totalComments');
+    document.getElementById('dashStatTotalShares').textContent = sumField('totalShares');
+    document.getElementById('dashStatTotalClicks').textContent = sumField('totalClicks');
+
+    const projectsBody = document.getElementById('dashTopProjectsBody');
+    const projectsEmpty = document.getElementById('dashTopProjectsEmpty');
+    const topProjects = [...allProjects].sort((a,b) => (b.stats.totalViews||0) - (a.stats.totalViews||0));
+    projectsBody.innerHTML = topProjects.map(p => `<tr class="trow"><td>${p.name}</td><td>${p.stats.totalViews} views</td></tr>`).join('');
+    projectsEmpty.style.display = topProjects.length ? 'none' : 'block';
+  }
+
   function addBrand(){
     const v = document.getElementById('brandNameInput').value.trim();
     if(!v) return;
