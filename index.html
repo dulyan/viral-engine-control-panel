@@ -420,7 +420,7 @@
 
     <!-- ================= CLOUDPHONES ================= -->
     <section class="section" id="page-cloudphones">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
         <div class="card rounded-2xl p-5 shadow-soft">
           <p class="text-sm text-[var(--gray-500)] mb-2">Connected Cloudphones</p>
           <p class="text-3xl font-extrabold" id="cpCount">6</p>
@@ -428,6 +428,11 @@
         <div class="card rounded-2xl p-5 shadow-soft">
           <p class="text-sm text-[var(--gray-500)] mb-2">Connected Proxies</p>
           <p class="text-3xl font-extrabold" id="proxyCount">4</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft">
+          <p class="text-sm text-[var(--gray-500)] mb-2">Avg Phones / Proxy</p>
+          <p class="text-3xl font-extrabold" id="avgPhonesPerProxyValue">2.0</p>
+          <p class="text-xs text-[var(--gray-400)] mt-1" id="avgPhonesPerProxyNote">Default ratio — no proxies yet</p>
         </div>
       </div>
 
@@ -663,8 +668,7 @@
         <div class="wizard-step active" data-wstep="1">
           <h3 class="font-bold text-lg mb-4">Campaign Details</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-            <div><label class="field-label">Campaign Name</label><input type="text" placeholder="e.g. Autumn Drop"></div>
-            <div><label class="field-label">Time Period</label><input type="text" placeholder="e.g. 30 days"></div>
+            <div><label class="field-label">Campaign Name</label><input type="text" id="campaignNameInput" placeholder="e.g. Autumn Drop"></div>
           </div>
           <label class="field-label">Primary Target</label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="targetChoices">
@@ -672,13 +676,13 @@
               <p class="font-semibold text-sm">Total Views</p>
               <p class="text-xs text-[var(--gray-500)] mt-1 mb-3">Optimize distribution for aggregate view count</p>
               <label class="field-label">Target Total Views</label>
-              <input type="number" id="targetViewsInput" placeholder="e.g. 1000000" min="0" onclick="event.stopPropagation()">
+              <input type="number" id="targetViewsInput" placeholder="e.g. 1000000" min="0" onclick="event.stopPropagation()" onchange="updateCampaignRequirements()">
             </div>
             <div class="choice-card" data-target="videos">
               <p class="font-semibold text-sm">Total Videos Posted</p>
               <p class="text-xs text-[var(--gray-500)] mt-1 mb-3">Optimize distribution for posting volume</p>
               <label class="field-label">Target Total Videos</label>
-              <input type="number" id="targetVideosInput" placeholder="e.g. 500" min="0" onclick="event.stopPropagation()">
+              <input type="number" id="targetVideosInput" placeholder="e.g. 500" min="0" onclick="event.stopPropagation()" onchange="updateCampaignRequirements()">
             </div>
           </div>
           <label class="field-label">Split Mode</label>
@@ -687,9 +691,33 @@
             <button class="pill-tab" data-split="grid">Per-cell Grid</button>
             <button class="pill-tab" data-split="weighted">Weighted</button>
           </div>
+
+          <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-4">
+            <p class="text-sm font-semibold mb-3">Campaign Formula Parameters</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div><label class="field-label">Campaign Time Period (days)</label><input type="number" id="campaignTimePeriodInput" min="1" step="1" value="30" onchange="updateCampaignRequirements()"></div>
+              <div><label class="field-label">Accounts Per Phone</label><input type="number" id="campaignAccountsPerPhoneInput" min="1" step="1" value="1" onchange="updateCampaignRequirements()"></div>
+              <div><label class="field-label">Expected Average Views Per Video</label><input type="number" id="campaignAvgViewsInput" min="1" step="1" value="1000" onchange="updateCampaignRequirements()"></div>
+              <div></div>
+              <div><label class="field-label">Min Posts Per Day / Account</label><input type="number" id="campaignMinPostsPerDayInput" min="0" step="1" value="1" onchange="clampCampaignPosts('min'); updateCampaignRequirements()"></div>
+              <div><label class="field-label">Max Posts Per Day / Account</label><input type="number" id="campaignMaxPostsPerDayInput" min="0" step="1" value="3" onchange="clampCampaignPosts('max'); updateCampaignRequirements()"></div>
+            </div>
+            <div>
+              <label class="field-label">Maintenance preset used during campaign</label>
+              <select id="campaignDuringMaintenanceSelect" onchange="updateCampaignRequirements()"></select>
+              <p class="text-xs text-[var(--gray-500)] mt-2">Applied to the pool's accounts while this campaign is active — factored into account availability below.</p>
+            </div>
+          </div>
+
           <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)]">
-            <p class="text-sm font-semibold mb-1">PRD Formula Estimate</p>
-            <p class="text-xs text-[var(--gray-500)]">~184 cloudphones, 176 proxies, and 1,240 accounts required to hit target within time period.</p>
+            <p class="text-sm font-semibold mb-2">Computed Requirements</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+              <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones</p><p class="text-lg font-bold" id="reqPhonesValue">0</p></div>
+              <div><p class="text-xs text-[var(--gray-500)] mb-1">Proxies</p><p class="text-lg font-bold" id="reqProxiesValue">0</p></div>
+              <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts</p><p class="text-lg font-bold" id="reqAccountsValue">0</p></div>
+              <div><p class="text-xs text-[var(--gray-500)] mb-1">Videos</p><p class="text-lg font-bold" id="reqVideosValue">0</p></div>
+            </div>
+            <p class="text-xs text-[var(--gray-500)]" id="reqAccountsGapNote">Select account pools in the next step to compare against ready accounts.</p>
           </div>
         </div>
 
@@ -785,17 +813,12 @@
         <div class="wizard-step" data-wstep="5">
           <h3 class="font-bold text-lg mb-4">Campaign Stats vs PRD Formula</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold">1,240 / 1,240</p></div>
-            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold">184 / 184</p></div>
-            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold">176 / 176</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold" id="stepFiveAccountsStat">0 / 0</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold" id="stepFiveCloudphonesStat">0 / 0</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold" id="stepFiveProxiesStat">0 / 0</p></div>
           </div>
-          <span class="badge badge-ready mb-5" style="display:inline-flex;">Matches PRD formula — ready to launch</span>
+          <span class="badge mb-5" id="stepFivePrdBadge" style="display:inline-flex;">—</span>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="field-label">Maintenance preset used during campaign</label>
-              <select id="campaignDuringMaintenanceSelect"></select>
-              <p class="text-xs text-[var(--gray-500)] mt-2">Applied to the pool's accounts while this campaign is active.</p>
-            </div>
             <div>
               <label class="field-label">Maintenance preset used after campaign</label>
               <select id="campaignAfterMaintenanceSelect"></select>
@@ -834,7 +857,10 @@
     <h3 class="font-bold text-lg mb-4">Add Proxy</h3>
     <div class="flex flex-col gap-4 mb-6">
       <div><label class="field-label">Proxy Address</label><input type="text" id="proxyAddrInput" placeholder="e.g. 192.168.1.10:8080"></div>
-      <div><label class="field-label">Attach to Cloudphone</label><select id="proxyAttachSelect"></select></div>
+      <div>
+        <label class="field-label">Attach to Cloudphone(s)</label>
+        <div class="flex flex-col gap-2" id="proxyAttachChecklist"></div>
+      </div>
     </div>
     <div class="flex justify-end gap-3">
       <button class="btn-secondary" onclick="closeModal('addProxyModal')">Cancel</button>
@@ -955,6 +981,7 @@
     card.addEventListener('click', ()=>{
       card.parentElement.querySelectorAll('.choice-card').forEach(c=>c.classList.remove('selected'));
       card.classList.add('selected');
+      if(card.closest('#targetChoices')) updateCampaignRequirements();
     });
   });
   document.querySelectorAll('[data-source]').forEach(card=>{
@@ -997,8 +1024,10 @@
 
   // ---------- Cloudphones / Proxies state ----------
   let cloudphones = [];
-  let proxies = [];
+  let proxies = []; // { id, addr, attachedPhoneIds: [cloudphoneId, ...], status }
   let cpCounter = 0, proxyCounter = 0;
+  // Fallback ratio used for campaign requirement estimates before any proxies exist.
+  const DEFAULT_PHONES_PER_PROXY = 2;
 
   function renderCloudphones(){
     const list = document.getElementById('cloudphoneList');
@@ -1011,21 +1040,49 @@
         <span class="badge ${cp.status==='Ready'?'badge-ready':cp.status==='Checking'?'badge-checking':'badge-notready'}">${cp.status}</span>
       </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No cloudphones added yet.</p>`;
     document.getElementById('cpCount').textContent = cloudphones.filter(c=>c.status==='Ready').length;
-    const sel = document.getElementById('proxyAttachSelect');
-    sel.innerHTML = cloudphones.map(cp=>`<option>${cp.name}</option>`).join('') || '<option disabled>Add a cloudphone first</option>';
+    renderProxyAttachChecklist();
+  }
+
+  function renderProxyAttachChecklist(){
+    const list = document.getElementById('proxyAttachChecklist');
+    if(!list) return;
+    list.innerHTML = cloudphones.map(cp => `
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" value="${cp.id}">
+        <span>${cp.name}</span>
+      </label>`).join('') || `<p class="text-xs text-[var(--gray-400)]">Add a cloudphone first.</p>`;
   }
 
   function renderProxies(){
     const list = document.getElementById('proxyList');
-    list.innerHTML = proxies.map(p => `
+    list.innerHTML = proxies.map(p => {
+      const names = p.attachedPhoneIds.map(id => cloudphones.find(cp => cp.id === id)).filter(Boolean).map(cp => cp.name);
+      const attachedText = names.length ? `Attached to ${names.length} phone${names.length === 1 ? '' : 's'}: ${names.join(', ')}` : 'Not attached to any phone';
+      return `
       <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
         <div>
           <p class="font-semibold text-sm">${p.addr}</p>
-          <p class="text-xs text-[var(--gray-500)]">Attached to ${p.attached}</p>
+          <p class="text-xs text-[var(--gray-500)]">${attachedText}</p>
         </div>
         <span class="badge ${p.status==='Ready'?'badge-ready':p.status==='Checking'?'badge-checking':'badge-notready'}">${p.status}</span>
-      </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No proxies added yet.</p>`;
+      </div>`;
+    }).join('') || `<p class="text-sm text-[var(--gray-400)]">No proxies added yet.</p>`;
     document.getElementById('proxyCount').textContent = proxies.filter(p=>p.status==='Ready').length;
+    renderAvgPhonesPerProxyStat();
+  }
+
+  function getAvgPhonesPerProxy(){
+    if(proxies.length === 0) return DEFAULT_PHONES_PER_PROXY;
+    const totalPhones = proxies.reduce((sum, p) => sum + p.attachedPhoneIds.length, 0);
+    return totalPhones / proxies.length;
+  }
+
+  function renderAvgPhonesPerProxyStat(){
+    const ratio = getAvgPhonesPerProxy();
+    document.getElementById('avgPhonesPerProxyValue').textContent = ratio.toFixed(1);
+    document.getElementById('avgPhonesPerProxyNote').textContent = proxies.length === 0
+      ? 'Default ratio — no proxies yet'
+      : `Across ${proxies.length} proxy${proxies.length === 1 ? '' : 'ies'}`;
   }
 
   function addCloudphone(){
@@ -1042,10 +1099,10 @@
 
   function addProxy(){
     const addr = document.getElementById('proxyAddrInput').value.trim();
-    const attached = document.getElementById('proxyAttachSelect').value || 'None';
+    const attachedPhoneIds = Array.from(document.querySelectorAll('#proxyAttachChecklist input:checked')).map(cb => +cb.value);
     if(!addr) return;
     proxyCounter++;
-    const p = { id: proxyCounter, addr, attached, status:'Checking' };
+    const p = { id: proxyCounter, addr, attachedPhoneIds, status:'Checking' };
     proxies.push(p);
     renderProxies();
     closeModal('addProxyModal');
@@ -1981,8 +2038,10 @@
     });
     document.getElementById('wizardBack').disabled = wstep === 1;
     document.getElementById('wizardNext').textContent = wstep === totalSteps ? 'Launch Campaign' : 'Next';
+    renderCampaignMaintenanceSelects();
+    if(wstep === 1) updateCampaignRequirements();
     if(wstep === 2) renderCampaignPoolSelect();
-    if(wstep === 5) renderCampaignMaintenanceSelects();
+    if(wstep === 5) updateCampaignRequirements();
   }
 
   function renderCampaignMaintenanceSelects(){
@@ -1994,6 +2053,84 @@
       sel.innerHTML = options || '<option disabled selected>No maintenance presets saved yet</option>';
       if(maintenancePresets.some(pr => String(pr.id) === prevValue)) sel.value = prevValue;
     });
+  }
+
+  function clampCampaignPosts(changed){
+    const minEl = document.getElementById('campaignMinPostsPerDayInput');
+    const maxEl = document.getElementById('campaignMaxPostsPerDayInput');
+    const min = parseFloat(minEl.value) || 0;
+    const max = parseFloat(maxEl.value) || 0;
+    if(max < min){
+      if(changed === 'min') maxEl.value = min; else minEl.value = max;
+    }
+  }
+
+  function computeCampaignRequirements(){
+    const timePeriod = Math.max(1, parseFloat(document.getElementById('campaignTimePeriodInput').value) || 1);
+    const accountsPerPhone = Math.max(1, parseFloat(document.getElementById('campaignAccountsPerPhoneInput').value) || 1);
+    const avgViews = Math.max(1, parseFloat(document.getElementById('campaignAvgViewsInput').value) || 1);
+    const minPosts = Math.max(0, parseFloat(document.getElementById('campaignMinPostsPerDayInput').value) || 0);
+    const maxPosts = Math.max(0, parseFloat(document.getElementById('campaignMaxPostsPerDayInput').value) || 0);
+    const postsPerDayPerAccount = (minPosts + maxPosts) / 2;
+
+    const targetCard = document.querySelector('#targetChoices .choice-card.selected');
+    const targetMode = targetCard ? targetCard.dataset.target : 'views';
+    const targetViews = parseFloat(document.getElementById('targetViewsInput').value) || 0;
+    const targetVideos = parseFloat(document.getElementById('targetVideosInput').value) || 0;
+    const requiredVideos = targetMode === 'videos'
+      ? Math.ceil(targetVideos)
+      : Math.ceil(targetViews / avgViews);
+
+    const duringMaintenanceSelected = !!document.getElementById('campaignDuringMaintenanceSelect').value;
+    const availableFraction = duringMaintenanceSelected ? 0.9 : 1.0;
+    const dailyThroughputPerAccount = Math.max(0.01, postsPerDayPerAccount * timePeriod);
+    const requiredAccounts = Math.ceil(Math.ceil(requiredVideos / dailyThroughputPerAccount) / availableFraction);
+
+    const selectedPools = pools.filter(p => selectedCampaignPoolIds.includes(p.id));
+    const readyAccounts = selectedPools.reduce((sum, p) => sum + (p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0), 0);
+    const accountGap = Math.max(0, requiredAccounts - readyAccounts);
+
+    const requiredPhones = Math.ceil(requiredAccounts / accountsPerPhone);
+    const requiredProxies = Math.ceil(requiredPhones / getAvgPhonesPerProxy());
+
+    return { requiredVideos, requiredAccounts, readyAccounts, accountGap, requiredPhones, requiredProxies };
+  }
+
+  function updateCampaignRequirements(){
+    const r = computeCampaignRequirements();
+    document.getElementById('reqPhonesValue').textContent = r.requiredPhones;
+    document.getElementById('reqProxiesValue').textContent = r.requiredProxies;
+    document.getElementById('reqAccountsValue').textContent = r.requiredAccounts;
+    document.getElementById('reqVideosValue').textContent = r.requiredVideos;
+    document.getElementById('reqAccountsGapNote').textContent = r.accountGap > 0
+      ? `${r.readyAccounts} ready account${r.readyAccounts === 1 ? '' : 's'} in selected pools — need ${r.accountGap} more to hit this target.`
+      : `${r.readyAccounts} ready account${r.readyAccounts === 1 ? '' : 's'} in selected pools — enough to hit this target.`;
+
+    const cpReady = cloudphones.filter(c=>c.status==='Ready').length;
+    const proxyReady = proxies.filter(p=>p.status==='Ready').length;
+    const accountsStat = document.getElementById('stepFiveAccountsStat');
+    const cloudphonesStat = document.getElementById('stepFiveCloudphonesStat');
+    const proxiesStat = document.getElementById('stepFiveProxiesStat');
+    if(accountsStat) accountsStat.textContent = `${r.readyAccounts} / ${r.requiredAccounts}`;
+    if(cloudphonesStat) cloudphonesStat.textContent = `${cpReady} / ${r.requiredPhones}`;
+    if(proxiesStat) proxiesStat.textContent = `${proxyReady} / ${r.requiredProxies}`;
+
+    const badge = document.getElementById('stepFivePrdBadge');
+    if(badge){
+      const shortfalls = [];
+      if(r.readyAccounts < r.requiredAccounts) shortfalls.push(`${r.requiredAccounts - r.readyAccounts} more accounts`);
+      if(cpReady < r.requiredPhones) shortfalls.push(`${r.requiredPhones - cpReady} more phones`);
+      if(proxyReady < r.requiredProxies) shortfalls.push(`${r.requiredProxies - proxyReady} more proxies`);
+      if(shortfalls.length === 0){
+        badge.className = 'badge badge-ready mb-5';
+        badge.style.display = 'inline-flex';
+        badge.textContent = 'Matches PRD formula — ready to launch';
+      } else {
+        badge.className = 'badge badge-notready mb-5';
+        badge.style.display = 'inline-flex';
+        badge.textContent = `Below PRD formula — ${shortfalls.join(', ')} needed`;
+      }
+    }
   }
 
   let selectedCampaignPoolIds = [];
@@ -2028,6 +2165,7 @@
     document.getElementById('campaignPoolNotReady').textContent = total - ready;
     document.getElementById('campaignPoolTotal').textContent = total;
     document.getElementById('campaignPoolCount').textContent = selectedPools.length;
+    updateCampaignRequirements();
   }
 
   function setAvatarSource(source){
