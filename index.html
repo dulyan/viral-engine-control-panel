@@ -531,93 +531,91 @@
         <div class="flex flex-col gap-3" id="poolList"></div>
       </div>
 
-      <!-- ========== 3. Warmup Preset Builder (standalone) ========== -->
-      <div class="card rounded-2xl p-6 shadow-soft mb-6" id="warmupBuilderCard">
+      <!-- ========== 3. Preset Builder (standalone — build either a Warmup or Maintenance preset) ========== -->
+      <div class="card rounded-2xl p-6 shadow-soft mb-6">
         <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <h3 class="font-bold text-lg">Warmup Preset Builder</h3>
-            <span class="badge badge-dark">Warmup</span>
-          </div>
+          <h3 class="font-bold text-lg">Preset Builder</h3>
+          <span class="badge" id="builderTypeBadge">Warmup</span>
         </div>
-        <p class="text-xs text-[var(--gray-500)] mb-4">Author or edit a warmup preset. Presets built here are saved to the library and assigned to pools from Session Configuration above.</p>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Choose which kind of preset to build, then author or edit it below. Presets are saved to the library and assigned to pools from Session Configuration above.</p>
 
-        <div class="flex items-end gap-3 mb-5 flex-wrap">
-          <div class="flex-1 min-w-[220px]">
-            <label class="field-label">Load existing preset</label>
-            <select id="warmupLoadPresetSelect" onchange="loadPresetIntoBuilder('warmup')"></select>
-          </div>
+        <div class="flex gap-1 bg-white border border-[var(--gray-200)] rounded-full p-1 mb-5 w-fit">
+          <button type="button" class="pill-tab active" id="builderTypeWarmupBtn" onclick="setBuilderType('warmup')">Warmup Preset</button>
+          <button type="button" class="pill-tab" id="builderTypeMaintenanceBtn" onclick="setBuilderType('maintenance')">Maintenance Preset</button>
         </div>
 
-        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
-          <p class="font-semibold text-sm mb-1">Theme / niche</p>
-          <p class="text-xs text-[var(--gray-500)] mb-3">What content should this preset engage with? Drives which reels and hashtags the pool interacts with.</p>
-          <div class="flex gap-2 flex-wrap mb-3" id="warmupNicheChips">
-            <button type="button" class="pill-tab" data-niche="Sports">Sports</button>
-            <button type="button" class="pill-tab" data-niche="Food">Food</button>
-            <button type="button" class="pill-tab" data-niche="Cars">Cars</button>
-            <button type="button" class="pill-tab" data-niche="Beauty">Beauty</button>
-            <button type="button" class="pill-tab" data-niche="Fitness">Fitness</button>
-            <button type="button" class="pill-tab" data-niche="Tech">Tech</button>
-            <button type="button" class="pill-tab" data-niche="Travel">Travel</button>
-          </div>
-          <input type="text" id="warmupNicheInput" placeholder="Or type a custom niche — e.g. vintage motorcycles">
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-6" id="warmupBuilderStepGrid">
-          <div class="flex flex-col gap-1" id="warmupPresetStepList"></div>
-          <div id="warmupPresetStepContent"></div>
-          <div id="warmupSummaryPanel"></div>
-        </div>
-      </div>
-
-      <!-- ========== 4. Maintenance Preset Builder (standalone) ========== -->
-      <div class="card rounded-2xl p-6 shadow-soft mb-6" id="maintenanceBuilderCard">
-        <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <h3 class="font-bold text-lg">Maintenance Preset Builder</h3>
-            <span class="badge badge-active">Maintenance</span>
-          </div>
-        </div>
-        <p class="text-xs text-[var(--gray-500)] mb-4">Author or edit a maintenance preset — used to keep a pool lightly active while it waits to be assigned to a campaign.</p>
-
-        <div class="flex items-end gap-3 mb-5 flex-wrap">
-          <div class="flex-1 min-w-[220px]">
-            <label class="field-label">Load existing preset</label>
-            <select id="maintenanceLoadPresetSelect" onchange="loadPresetIntoBuilder('maintenance')"></select>
-          </div>
-        </div>
-
-        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
-          <p class="font-semibold text-sm mb-1">Mimic a warmup preset</p>
-          <p class="text-xs text-[var(--gray-500)] mb-3">One-time copy — pulls that preset's current ranges into this builder so you can tweak them. Editing the original warmup preset afterward will not affect this one.</p>
-          <div class="flex items-end gap-3 flex-wrap">
+        <!-- Warmup builder body -->
+        <div id="warmupBuilderCard">
+          <div class="flex items-end gap-3 mb-5 flex-wrap">
             <div class="flex-1 min-w-[220px]">
-              <label class="field-label">Warmup preset to copy from</label>
-              <select id="mimicWarmupSelect"></select>
+              <label class="field-label">Load existing warmup preset</label>
+              <select id="warmupLoadPresetSelect" onchange="loadPresetIntoBuilder('warmup')"></select>
             </div>
-            <button class="btn-secondary" onclick="copyFromWarmupPreset()">Copy from warmup preset</button>
+          </div>
+
+          <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+            <p class="font-semibold text-sm mb-1">Theme / niche</p>
+            <p class="text-xs text-[var(--gray-500)] mb-3">What content should this preset engage with? Drives which reels and hashtags the pool interacts with.</p>
+            <div class="flex gap-2 flex-wrap mb-3" id="warmupNicheChips">
+              <button type="button" class="pill-tab" data-niche="Sports">Sports</button>
+              <button type="button" class="pill-tab" data-niche="Food">Food</button>
+              <button type="button" class="pill-tab" data-niche="Cars">Cars</button>
+              <button type="button" class="pill-tab" data-niche="Beauty">Beauty</button>
+              <button type="button" class="pill-tab" data-niche="Fitness">Fitness</button>
+              <button type="button" class="pill-tab" data-niche="Tech">Tech</button>
+              <button type="button" class="pill-tab" data-niche="Travel">Travel</button>
+            </div>
+            <input type="text" id="warmupNicheInput" placeholder="Or type a custom niche — e.g. vintage motorcycles">
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-6" id="warmupBuilderStepGrid">
+            <div class="flex flex-col gap-1" id="warmupPresetStepList"></div>
+            <div id="warmupPresetStepContent"></div>
+            <div id="warmupSummaryPanel"></div>
           </div>
         </div>
 
-        <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
-          <p class="font-semibold text-sm mb-1">Theme / niche</p>
-          <p class="text-xs text-[var(--gray-500)] mb-3">What content should this preset engage with? Drives which reels and hashtags the pool interacts with.</p>
-          <div class="flex gap-2 flex-wrap mb-3" id="maintenanceNicheChips">
-            <button type="button" class="pill-tab" data-niche="Sports">Sports</button>
-            <button type="button" class="pill-tab" data-niche="Food">Food</button>
-            <button type="button" class="pill-tab" data-niche="Cars">Cars</button>
-            <button type="button" class="pill-tab" data-niche="Beauty">Beauty</button>
-            <button type="button" class="pill-tab" data-niche="Fitness">Fitness</button>
-            <button type="button" class="pill-tab" data-niche="Tech">Tech</button>
-            <button type="button" class="pill-tab" data-niche="Travel">Travel</button>
+        <!-- Maintenance builder body -->
+        <div id="maintenanceBuilderCard" style="display:none;">
+          <div class="flex items-end gap-3 mb-5 flex-wrap">
+            <div class="flex-1 min-w-[220px]">
+              <label class="field-label">Load existing maintenance preset</label>
+              <select id="maintenanceLoadPresetSelect" onchange="loadPresetIntoBuilder('maintenance')"></select>
+            </div>
           </div>
-          <input type="text" id="maintenanceNicheInput" placeholder="Or type a custom niche — e.g. vintage motorcycles">
-        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-6" id="maintenanceBuilderStepGrid">
-          <div class="flex flex-col gap-1" id="maintenancePresetStepList"></div>
-          <div id="maintenancePresetStepContent"></div>
-          <div id="maintenanceSummaryPanel"></div>
+          <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+            <p class="font-semibold text-sm mb-1">Mimic a warmup preset</p>
+            <p class="text-xs text-[var(--gray-500)] mb-3">One-time copy — pulls that preset's current ranges into this builder so you can tweak them. Editing the original warmup preset afterward will not affect this one.</p>
+            <div class="flex items-end gap-3 flex-wrap">
+              <div class="flex-1 min-w-[220px]">
+                <label class="field-label">Warmup preset to copy from</label>
+                <select id="mimicWarmupSelect"></select>
+              </div>
+              <button class="btn-secondary" onclick="copyFromWarmupPreset()">Copy from warmup preset</button>
+            </div>
+          </div>
+
+          <div class="card rounded-xl p-5 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-5">
+            <p class="font-semibold text-sm mb-1">Theme / niche</p>
+            <p class="text-xs text-[var(--gray-500)] mb-3">What content should this preset engage with? Drives which reels and hashtags the pool interacts with.</p>
+            <div class="flex gap-2 flex-wrap mb-3" id="maintenanceNicheChips">
+              <button type="button" class="pill-tab" data-niche="Sports">Sports</button>
+              <button type="button" class="pill-tab" data-niche="Food">Food</button>
+              <button type="button" class="pill-tab" data-niche="Cars">Cars</button>
+              <button type="button" class="pill-tab" data-niche="Beauty">Beauty</button>
+              <button type="button" class="pill-tab" data-niche="Fitness">Fitness</button>
+              <button type="button" class="pill-tab" data-niche="Tech">Tech</button>
+              <button type="button" class="pill-tab" data-niche="Travel">Travel</button>
+            </div>
+            <input type="text" id="maintenanceNicheInput" placeholder="Or type a custom niche — e.g. vintage motorcycles">
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-6" id="maintenanceBuilderStepGrid">
+            <div class="flex flex-col gap-1" id="maintenancePresetStepList"></div>
+            <div id="maintenancePresetStepContent"></div>
+            <div id="maintenanceSummaryPanel"></div>
+          </div>
         </div>
       </div>
 
@@ -625,7 +623,7 @@
         <div class="flex items-center justify-between mb-1">
           <h3 class="font-bold text-lg">Preset Library</h3>
         </div>
-        <p class="text-xs text-[var(--gray-500)] mb-4">Warmup and maintenance presets saved from either builder land here — rename them and assign them to pools from Session Configuration.</p>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Every saved preset lands here. Edit its configuration, rename it, change its type, or assign it to a pool from Session Configuration.</p>
         <div class="flex flex-col gap-3" id="presetLibraryList"></div>
       </div>
     </section>
@@ -1486,6 +1484,17 @@
 
   function builderCard(p){ return document.getElementById(p + 'BuilderCard'); }
 
+  // ---------- Preset type switcher: same builder, two independent bodies shown one at a time ----------
+  function setBuilderType(type){
+    document.getElementById('builderTypeWarmupBtn').classList.toggle('active', type === 'warmup');
+    document.getElementById('builderTypeMaintenanceBtn').classList.toggle('active', type === 'maintenance');
+    document.getElementById('warmupBuilderCard').style.display = type === 'warmup' ? 'block' : 'none';
+    document.getElementById('maintenanceBuilderCard').style.display = type === 'maintenance' ? 'block' : 'none';
+    const badge = document.getElementById('builderTypeBadge');
+    badge.textContent = type === 'warmup' ? 'Warmup' : 'Maintenance';
+    badge.className = 'badge ' + (type === 'warmup' ? 'badge-dark' : 'badge-active');
+  }
+
   function layoutRange(p, field){
     const min = parseFloat(field.dataset.min), max = parseFloat(field.dataset.max);
     const key = field.dataset.range;
@@ -1771,12 +1780,23 @@
           </div>
           <p class="text-xs text-[var(--gray-500)] mt-1">${usedBy.length ? `Used by: ${usedBy.join(', ')}` : 'Not currently running on any pool'}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="editPresetInBuilder(${pr.id})">Edit</button>
           <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="renamePreset(${pr.id})">Rename</button>
+          <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="changePresetType(${pr.id})">Change Type</button>
           <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="deletePreset(${pr.id})">Delete</button>
         </div>
       </div>`;
-    }).join('') || `<p class="text-sm text-[var(--gray-400)]">No saved presets yet. Save a warmup or maintenance configuration from a builder above to add one here.</p>`;
+    }).join('') || `<p class="text-sm text-[var(--gray-400)]">No saved presets yet. Save a warmup or maintenance configuration from the builder above to add one here.</p>`;
+  }
+  function editPresetInBuilder(id){
+    const preset = presetLibrary.find(pr => pr.id === id);
+    if(!preset) return;
+    setBuilderType(preset.mode);
+    builders[preset.mode].loadedPresetId = id;
+    renderBuilderLoadSelect(preset.mode);
+    applyPreset(preset.mode, preset.snapshot);
+    document.getElementById('builderTypeBadge').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function renamePreset(id){
     const preset = presetLibrary.find(pr => pr.id === id);
@@ -1790,6 +1810,22 @@
     renderBuilderLoadSelect('maintenance');
     renderMimicWarmupSelect();
     renderSessionPresetSelect();
+  }
+  function changePresetType(id){
+    const preset = presetLibrary.find(pr => pr.id === id);
+    if(!preset) return;
+    const otherMode = preset.mode === 'warmup' ? 'maintenance' : 'warmup';
+    if(!confirm(`Change "${preset.name}" from ${preset.mode === 'warmup' ? 'Warmup' : 'Maintenance'} to ${otherMode === 'warmup' ? 'Warmup' : 'Maintenance'}? Any session currently running it will be stopped.`)) return;
+    sessions = sessions.filter(s => s.presetId !== id);
+    ['warmup','maintenance'].forEach(p => { if(builders[p].loadedPresetId === id) builders[p].loadedPresetId = null; });
+    preset.mode = otherMode;
+    renderPresetLibrary();
+    renderPools();
+    renderBuilderLoadSelect('warmup');
+    renderBuilderLoadSelect('maintenance');
+    renderMimicWarmupSelect();
+    renderSessionPresetSelect();
+    renderSessionConfig();
   }
   function deletePreset(id){
     const preset = presetLibrary.find(pr => pr.id === id);
