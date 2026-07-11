@@ -42,7 +42,7 @@
   .transition-\[width\]{transition-property:width;} .duration-500{transition-duration:500ms;}
   .text-white{color:#fff;}
   @media (min-width:640px){ .sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} .sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));} }
-  @media (min-width:768px){ .md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} .md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));} .md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr));} }
+  @media (min-width:768px){ .md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));} .md\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr));} .md\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr));} .md\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr));} }
   @media (min-width:1024px){
     .lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr));}
     .lg\:grid-cols-\[1fr_360px\]{grid-template-columns:1fr 360px;}
@@ -58,7 +58,7 @@
   .\!h-8{height:2rem !important;} .\!h-9{height:2.25rem !important;} .\!w-8{width:2rem !important;} .\!w-9{width:2.25rem !important;}
   .\!p-0{padding:0 !important;} .\!px-2{padding-left:.5rem !important;padding-right:.5rem !important;} .\!px-3{padding-left:.75rem !important;padding-right:.75rem !important;}
   .\!py-1\.5{padding-top:.375rem !important;padding-bottom:.375rem !important;} .\!py-2{padding-top:.5rem !important;padding-bottom:.5rem !important;}
-  .\!shadow-none{box-shadow:none !important;} .\!text-xs{font-size:.75rem !important;line-height:1rem !important;}
+  .\!shadow-none{box-shadow:none !important;} .\!text-xs{font-size:.75rem !important;line-height:1rem !important;} .\!w-auto{width:auto !important;}
   :root{
     --ink:#111113;
     --ink-soft:#1c1c20;
@@ -477,14 +477,143 @@
 
     <!-- ================= BRANDS & PROJECTS ================= -->
     <section class="section" id="page-brands">
-      <div class="card rounded-2xl p-6 shadow-soft mb-6">
-        <div class="flex items-center justify-between mb-1">
-          <h3 class="font-bold text-lg">Brands</h3>
-          <button class="btn-primary" onclick="openModal('addBrandModal')">+ Add Brand</button>
+      <div id="page-brands-list">
+        <div class="card rounded-2xl p-6 shadow-soft mb-6">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="font-bold text-lg">Brands</h3>
+            <button class="btn-primary" onclick="openModal('addBrandModal')">+ Add Brand</button>
+          </div>
+          <p class="text-xs text-[var(--gray-500)] mb-4">Create a brand first, then add projects underneath it. Click a brand or project name to open its overview.</p>
         </div>
-        <p class="text-xs text-[var(--gray-500)] mb-4">Create a brand first, then add projects underneath it.</p>
+        <div class="flex flex-col gap-5" id="brandList"></div>
       </div>
-      <div class="flex flex-col gap-5" id="brandList"></div>
+
+      <div id="page-brands-overview" style="display:none;">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <button class="icon-btn" aria-label="Back" onclick="closeOverview()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div>
+              <p class="font-extrabold text-2xl tracking-tight" id="overviewTitle">—</p>
+              <p class="text-sm text-[var(--gray-500)]" id="overviewSubtitle">Overview</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button class="btn-secondary !text-xs !py-2 !px-3" style="color:#b91c1c;" onclick="deleteOverviewEntity()">
+              <span id="overviewDeleteLabel">Delete</span>
+            </button>
+            <button class="btn-primary !text-xs !py-2 !px-3" id="overviewAddProjectBtn" onclick="openAddProject(overviewTarget.brandId)">+ Add Project</button>
+            <button class="btn-secondary !text-xs !py-2 !px-3" onclick="downloadOverviewStub('PDF')">Download PDF</button>
+            <button class="btn-secondary !text-xs !py-2 !px-3" onclick="downloadOverviewStub('Excel')">Download Excel</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-5">
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Views</p>
+            <p class="text-2xl font-extrabold" id="statTotalViews">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Goal Region Views</p>
+            <p class="text-2xl font-extrabold" id="statGoalRegionViews">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Projects</p>
+            <p class="text-2xl font-extrabold" id="statTotalProjects">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Accounts</p>
+            <p class="text-2xl font-extrabold" id="statTotalAccounts">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Videos</p>
+            <p class="text-2xl font-extrabold" id="statTotalVideos">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Subscribers</p>
+            <p class="text-2xl font-extrabold" id="statTotalSubscribers">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Likes</p>
+            <p class="text-2xl font-extrabold" id="statTotalLikes">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Comments</p>
+            <p class="text-2xl font-extrabold" id="statTotalComments">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Shares</p>
+            <p class="text-2xl font-extrabold" id="statTotalShares">0</p>
+          </div>
+          <div class="card rounded-2xl p-5 shadow-soft text-center">
+            <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Number of Clicks</p>
+            <p class="text-2xl font-extrabold" id="statTotalClicks">0</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+          <div class="card rounded-2xl p-6 shadow-soft">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-lg">Top Accounts</h3>
+              <select class="!w-auto"><option>Most Viewed</option></select>
+            </div>
+            <table><thead><tr><th>Account</th><th>Metrics</th></tr></thead><tbody></tbody></table>
+            <p class="text-sm text-[var(--gray-400)] mt-3">No account data yet.</p>
+          </div>
+          <div class="card rounded-2xl p-6 shadow-soft">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-lg">Top Videos</h3>
+              <select class="!w-auto"><option>Most Viewed</option></select>
+            </div>
+            <table><thead><tr><th>Video</th><th>Views</th></tr></thead><tbody></tbody></table>
+            <p class="text-sm text-[var(--gray-400)] mt-3">No video data yet.</p>
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft mb-5">
+          <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20z"/></svg>
+            Views Geography
+          </h3>
+          <div class="rounded-xl flex items-center justify-center text-center" style="border:1.5px dashed var(--gray-200); padding:3rem 1rem;">
+            <div>
+              <p class="text-sm text-[var(--gray-500)]">Geography visualization will appear here as campaign data accumulates</p>
+              <p class="text-xs text-[var(--gray-400)] mt-1">Showing views from all locations</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft mb-5">
+          <h3 class="font-bold text-lg mb-4">Views Graph</h3>
+          <div class="flex items-end gap-6 h-40 pl-2">
+            <div class="flex flex-col justify-between h-full text-xs text-[var(--gray-400)]">
+              <span>4</span><span>3</span><span>2</span><span>1</span><span>0</span>
+            </div>
+            <div class="flex-1 h-full flex items-end">
+              <svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none">
+                <line x1="0" y1="100" x2="300" y2="100" stroke="var(--ink)" stroke-width="2"/>
+                <circle cx="0" cy="100" r="3" fill="var(--ink)"/>
+                <circle cx="100" cy="100" r="3" fill="var(--ink)"/>
+                <circle cx="200" cy="100" r="3" fill="var(--ink)"/>
+                <circle cx="300" cy="100" r="3" fill="var(--ink)"/>
+              </svg>
+            </div>
+          </div>
+          <div class="flex justify-between text-xs text-[var(--gray-400)] mt-2 pl-8">
+            <span>0</span><span>1</span><span>2</span><span>3</span>
+          </div>
+          <p class="text-xs text-[var(--gray-400)] text-center mt-1">days since work began</p>
+        </div>
+
+        <div class="card rounded-2xl p-6 shadow-soft">
+          <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M7 8V6a5 5 0 0110 0v2"/></svg>
+            Bot Activity Estimation
+          </h3>
+          <p class="text-sm text-[var(--gray-500)]"><span class="text-2xl font-extrabold text-[var(--ink)]" id="statBotActivityPct">≈ 5%</span> Estimated number of bot views based on engagement patterns.</p>
+        </div>
+      </div>
     </section>
 
     <!-- ================= ACCOUNTS & WARMUP ================= -->
@@ -1107,17 +1236,24 @@
   renderProxies();
 
   // ---------- Brands / Projects ----------
-  // Each brand owns its own list of projects: { id, name, projects: [{id, name}] }
+  // Each brand owns its own list of projects: { id, name, projects: [{id, name, stats}], stats }
+  // stats holds metrics with no real data pipeline yet — they start at 0 and are only ever
+  // incremented by real app actions (none exist yet), never fabricated.
+  function blankStats(){
+    return { totalViews:0, goalRegionViews:0, totalAccounts:0, totalVideos:0, totalSubscribers:0,
+      totalLikes:0, totalComments:0, totalShares:0, totalClicks:0, botActivityPct:5 };
+  }
   let brands = [];
   let brandCounter = 0, projectCounter = 0;
   let addProjectBrandId = null;
+  let overviewTarget = null; // { type: 'brand'|'project', brandId, projectId? }
 
   function renderBrands(){
     document.getElementById('brandList').innerHTML = brands.map(b => `
       <div class="card rounded-2xl p-6 shadow-soft">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
-            <span class="font-bold text-lg">${b.name}</span>
+            <span class="font-bold text-lg cursor-pointer underline decoration-dotted" onclick="openBrandOverview(${b.id})">${b.name}</span>
             <span class="badge badge-dark">Active</span>
           </div>
           <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="openAddProject(${b.id})">+ Add Project</button>
@@ -1125,7 +1261,7 @@
         <div class="flex flex-col gap-2">
           ${b.projects.map(p => `
             <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
-              <span class="font-semibold text-sm">${p.name}</span>
+              <span class="font-semibold text-sm cursor-pointer underline decoration-dotted" onclick="openProjectOverview(${b.id}, ${p.id})">${p.name}</span>
               <span class="badge badge-dark">Active</span>
             </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No projects yet for this brand.</p>`}
         </div>
@@ -1135,7 +1271,7 @@
     const v = document.getElementById('brandNameInput').value.trim();
     if(!v) return;
     brandCounter++;
-    brands.push({ id: brandCounter, name: v, projects: [] });
+    brands.push({ id: brandCounter, name: v, projects: [], stats: blankStats() });
     renderBrands(); closeModal('addBrandModal');
     document.getElementById('brandNameInput').value='';
     renderCampaignGate();
@@ -1152,12 +1288,87 @@
     const brand = brands.find(b => b.id === addProjectBrandId);
     if(!v || !brand) return;
     projectCounter++;
-    brand.projects.push({ id: projectCounter, name: v });
+    brand.projects.push({ id: projectCounter, name: v, stats: blankStats() });
     renderBrands(); closeModal('addProjectModal');
     document.getElementById('projectNameInput').value='';
     renderCampaignGate();
   }
   renderBrands();
+
+  // ---------- Brand / Project overview ----------
+  function openBrandOverview(brandId){
+    overviewTarget = { type: 'brand', brandId };
+    document.getElementById('page-brands-list').style.display = 'none';
+    document.getElementById('page-brands-overview').style.display = 'block';
+    renderOverview();
+  }
+  function openProjectOverview(brandId, projectId){
+    overviewTarget = { type: 'project', brandId, projectId };
+    document.getElementById('page-brands-list').style.display = 'none';
+    document.getElementById('page-brands-overview').style.display = 'block';
+    renderOverview();
+  }
+  function closeOverview(){
+    overviewTarget = null;
+    document.getElementById('page-brands-overview').style.display = 'none';
+    document.getElementById('page-brands-list').style.display = 'block';
+  }
+  function currentOverviewEntity(){
+    if(!overviewTarget) return null;
+    const brand = brands.find(b => b.id === overviewTarget.brandId);
+    if(!brand) return null;
+    if(overviewTarget.type === 'brand') return { entity: brand, brand, kind: 'Brand' };
+    const project = brand.projects.find(p => p.id === overviewTarget.projectId);
+    if(!project) return null;
+    return { entity: project, brand, kind: 'Project' };
+  }
+  function renderOverview(){
+    const ctx = currentOverviewEntity();
+    if(!ctx){ closeOverview(); return; }
+    const { entity, brand, kind } = ctx;
+    const s = entity.stats;
+    document.getElementById('overviewTitle').textContent = entity.name;
+    document.getElementById('overviewSubtitle').textContent = kind === 'Brand' ? 'Brand Overview' : `Project Overview — ${brand.name}`;
+    document.getElementById('overviewDeleteLabel').textContent = kind === 'Brand' ? 'Delete Brand' : 'Delete Project';
+    document.getElementById('overviewAddProjectBtn').style.display = kind === 'Brand' ? 'inline-flex' : 'none';
+
+    const totalProjects = kind === 'Brand' ? entity.projects.length : 1;
+    const totalAccounts = kind === 'Brand'
+      ? entity.projects.reduce((sum,p)=>sum + (p.stats.totalAccounts||0), 0)
+      : s.totalAccounts;
+
+    document.getElementById('statTotalViews').textContent = s.totalViews;
+    document.getElementById('statGoalRegionViews').textContent = s.goalRegionViews;
+    document.getElementById('statTotalProjects').textContent = totalProjects;
+    document.getElementById('statTotalAccounts').textContent = totalAccounts;
+    document.getElementById('statTotalVideos').textContent = s.totalVideos;
+    document.getElementById('statTotalSubscribers').textContent = s.totalSubscribers;
+    document.getElementById('statTotalLikes').textContent = s.totalLikes;
+    document.getElementById('statTotalComments').textContent = s.totalComments;
+    document.getElementById('statTotalShares').textContent = s.totalShares;
+    document.getElementById('statTotalClicks').textContent = s.totalClicks;
+    document.getElementById('statBotActivityPct').textContent = `≈ ${s.botActivityPct}%`;
+  }
+  function deleteOverviewEntity(){
+    const ctx = currentOverviewEntity();
+    if(!ctx) return;
+    const { kind, entity, brand } = ctx;
+    const warning = kind === 'Brand' && entity.projects.length > 0
+      ? `Delete brand "${entity.name}"? This will also delete its ${entity.projects.length} project(s). This cannot be undone.`
+      : `Delete ${kind.toLowerCase()} "${entity.name}"? This cannot be undone.`;
+    if(!confirm(warning)) return;
+    if(kind === 'Brand'){
+      brands = brands.filter(b => b.id !== entity.id);
+    } else {
+      brand.projects = brand.projects.filter(p => p.id !== entity.id);
+    }
+    renderBrands();
+    renderCampaignGate();
+    closeOverview();
+  }
+  function downloadOverviewStub(format){
+    alert(`${format} export coming soon.`);
+  }
 
   // ---------- Campaign brand/project gate ----------
   function renderCampaignGate(){
