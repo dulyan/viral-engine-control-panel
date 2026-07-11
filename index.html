@@ -656,12 +656,23 @@
           </div>
           <button class="btn-secondary !text-xs !py-1.5 !px-3" onclick="editCampaignAssignment()">Change Brand / Project</button>
         </div>
-        <div class="flex items-center gap-3 mb-8" id="wizardSteps">
+        <div class="flex items-center gap-3 mb-6" id="wizardSteps">
           <div class="step-dot active" data-step="1">1</div><div class="step-line"></div>
           <div class="step-dot" data-step="2">2</div><div class="step-line"></div>
           <div class="step-dot" data-step="3">3</div><div class="step-line"></div>
           <div class="step-dot" data-step="4">4</div><div class="step-line"></div>
           <div class="step-dot" data-step="5">5</div>
+        </div>
+
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-8">
+          <p class="text-sm font-semibold mb-2">Computed Requirements</p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
+            <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones</p><p class="text-lg font-bold" id="reqPhonesValue">0</p></div>
+            <div><p class="text-xs text-[var(--gray-500)] mb-1">Proxies</p><p class="text-lg font-bold" id="reqProxiesValue">0</p></div>
+            <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts</p><p class="text-lg font-bold" id="reqAccountsValue">0</p></div>
+            <div><p class="text-xs text-[var(--gray-500)] mb-1">Videos</p><p class="text-lg font-bold" id="reqVideosValue">0</p></div>
+          </div>
+          <p class="text-xs text-[var(--gray-500)]" id="reqAccountsGapNote">Select account pools in the next step to compare against ready accounts.</p>
         </div>
 
         <!-- Step 1: Campaign basics -->
@@ -707,17 +718,6 @@
               <select id="campaignDuringMaintenanceSelect" onchange="updateCampaignRequirements()"></select>
               <p class="text-xs text-[var(--gray-500)] mt-2">Applied to the pool's accounts while this campaign is active — factored into account availability below.</p>
             </div>
-          </div>
-
-          <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)]">
-            <p class="text-sm font-semibold mb-2">Computed Requirements</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-              <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones</p><p class="text-lg font-bold" id="reqPhonesValue">0</p></div>
-              <div><p class="text-xs text-[var(--gray-500)] mb-1">Proxies</p><p class="text-lg font-bold" id="reqProxiesValue">0</p></div>
-              <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts</p><p class="text-lg font-bold" id="reqAccountsValue">0</p></div>
-              <div><p class="text-xs text-[var(--gray-500)] mb-1">Videos</p><p class="text-lg font-bold" id="reqVideosValue">0</p></div>
-            </div>
-            <p class="text-xs text-[var(--gray-500)]" id="reqAccountsGapNote">Select account pools in the next step to compare against ready accounts.</p>
           </div>
         </div>
 
@@ -2048,9 +2048,8 @@
     document.getElementById('wizardBack').disabled = wstep === 1;
     document.getElementById('wizardNext').textContent = wstep === totalSteps ? 'Launch Campaign' : 'Next';
     renderCampaignMaintenanceSelects();
-    if(wstep === 1) updateCampaignRequirements();
     if(wstep === 2) renderCampaignPoolSelect();
-    if(wstep === 5) updateCampaignRequirements();
+    updateCampaignRequirements();
   }
 
   function renderCampaignMaintenanceSelects(){
