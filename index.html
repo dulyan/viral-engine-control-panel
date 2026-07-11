@@ -902,7 +902,7 @@
           <div class="step-dot" data-step="5">5</div>
         </div>
 
-        <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-8">
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-4">
           <p class="text-sm font-semibold mb-2">Computed Requirements</p>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
             <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones</p><p class="text-lg font-bold" id="reqPhonesValue">0</p></div>
@@ -911,6 +911,16 @@
             <div><p class="text-xs text-[var(--gray-500)] mb-1">Videos</p><p class="text-lg font-bold" id="reqVideosValue">0</p></div>
           </div>
           <p class="text-xs text-[var(--gray-500)]" id="reqAccountsGapNote">Select account pools in the next step to compare against ready accounts.</p>
+        </div>
+
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-8">
+          <p class="text-sm font-semibold mb-2">Actual Campaign Stats vs Computed Requirements</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold" id="stepFiveAccountsStat">0 / 0</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold" id="stepFiveCloudphonesStat">0 / 0</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold" id="stepFiveProxiesStat">0 / 0</p></div>
+          </div>
+          <span class="badge" id="stepFivePrdBadge" style="display:inline-flex;">—</span>
         </div>
 
         <!-- Step 1: Campaign basics -->
@@ -1044,12 +1054,6 @@
         <!-- Step 5: Stats -->
         <div class="wizard-step" data-wstep="5">
           <h3 class="font-bold text-lg mb-4">Campaign Stats vs PRD Formula</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold" id="stepFiveAccountsStat">0 / 0</p></div>
-            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold" id="stepFiveCloudphonesStat">0 / 0</p></div>
-            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold" id="stepFiveProxiesStat">0 / 0</p></div>
-          </div>
-          <span class="badge mb-5" id="stepFivePrdBadge" style="display:inline-flex;">—</span>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="field-label">Maintenance preset used after campaign</label>
@@ -2461,11 +2465,11 @@
       if(cpReady < r.requiredPhones) shortfalls.push(`${r.requiredPhones - cpReady} more phones`);
       if(proxyReady < r.requiredProxies) shortfalls.push(`${r.requiredProxies - proxyReady} more proxies`);
       if(shortfalls.length === 0){
-        badge.className = 'badge badge-ready mb-5';
+        badge.className = 'badge badge-ready';
         badge.style.display = 'inline-flex';
         badge.textContent = 'Matches PRD formula — ready to launch';
       } else {
-        badge.className = 'badge badge-notready mb-5';
+        badge.className = 'badge badge-notready';
         badge.style.display = 'inline-flex';
         badge.textContent = `Below PRD formula — ${shortfalls.join(', ')} needed`;
       }
