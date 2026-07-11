@@ -696,12 +696,6 @@
               <input type="number" id="targetVideosInput" placeholder="e.g. 500" min="0" onclick="event.stopPropagation()" onchange="updateCampaignRequirements()">
             </div>
           </div>
-          <label class="field-label">Split Mode</label>
-          <div class="flex gap-2 mb-5 flex-wrap">
-            <button class="pill-tab active" data-split="equal">Equal Split</button>
-            <button class="pill-tab" data-split="grid">Per-cell Grid</button>
-            <button class="pill-tab" data-split="weighted">Weighted</button>
-          </div>
 
           <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-4">
             <p class="text-sm font-semibold mb-3">Campaign Formula Parameters</p>
@@ -967,16 +961,10 @@
     if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.target.click(); }
   });
 
-  // ---------- Range / split pill tabs ----------
+  // ---------- Range pill tabs ----------
   document.querySelectorAll('.pill-tab[data-range]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('.pill-tab[data-range]').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
-  document.querySelectorAll('.pill-tab[data-split]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.pill-tab[data-split]').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
     });
   });
