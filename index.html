@@ -902,24 +902,15 @@
           <div class="step-dot" data-step="5">5</div>
         </div>
 
-        <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-4">
-          <p class="text-sm font-semibold mb-2">Computed Requirements</p>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2">
-            <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones</p><p class="text-lg font-bold" id="reqPhonesValue">0</p></div>
-            <div><p class="text-xs text-[var(--gray-500)] mb-1">Proxies</p><p class="text-lg font-bold" id="reqProxiesValue">0</p></div>
-            <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts</p><p class="text-lg font-bold" id="reqAccountsValue">0</p></div>
-            <div><p class="text-xs text-[var(--gray-500)] mb-1">Videos</p><p class="text-lg font-bold" id="reqVideosValue">0</p></div>
-          </div>
-          <p class="text-xs text-[var(--gray-500)]" id="reqAccountsGapNote">Select account pools in the next step to compare against ready accounts.</p>
-        </div>
-
         <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-8">
           <p class="text-sm font-semibold mb-2">Actual Campaign Stats vs Computed Requirements</p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
             <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold" id="stepFiveAccountsStat">0 / 0</p></div>
             <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold" id="stepFiveCloudphonesStat">0 / 0</p></div>
             <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold" id="stepFiveProxiesStat">0 / 0</p></div>
+            <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Videos Added</p><p class="text-xl font-bold" id="stepFiveVideosStat">0 / 0</p></div>
           </div>
+          <p class="text-xs text-[var(--gray-500)] mb-3" id="reqAccountsGapNote">Select account pools in the next step to compare against ready accounts.</p>
           <span class="badge" id="stepFivePrdBadge" style="display:inline-flex;">—</span>
         </div>
 
@@ -1032,9 +1023,13 @@
         <!-- Step 3: Videos -->
         <div class="wizard-step" data-wstep="3">
           <h3 class="font-bold text-lg mb-4">Add Videos</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <div class="choice-card selected" data-source="drive"><p class="font-semibold text-sm">Google Drive</p><p class="text-xs text-[var(--gray-500)] mt-1">Connect and sync a shared folder</p></div>
             <div class="choice-card" data-source="local"><p class="font-semibold text-sm">Local Folder</p><p class="text-xs text-[var(--gray-500)] mt-1">Upload video files from this device</p></div>
+          </div>
+          <div class="max-w-[140px]">
+            <label class="field-label">Number of Videos Added</label>
+            <input type="number" id="campaignVideosAddedInput" min="0" step="1" value="0" onchange="updateCampaignRequirements()">
           </div>
         </div>
 
@@ -2435,16 +2430,13 @@
 
     const requiredPhones = Math.ceil(requiredAccounts / accountsPerPhone);
     const requiredProxies = Math.ceil(requiredPhones / getAvgPhonesPerProxy());
+    const videosAdded = Math.max(0, parseInt(document.getElementById('campaignVideosAddedInput').value) || 0);
 
-    return { requiredVideos, requiredAccounts, readyAccounts, accountGap, requiredPhones, requiredProxies };
+    return { requiredVideos, requiredAccounts, readyAccounts, accountGap, requiredPhones, requiredProxies, videosAdded };
   }
 
   function updateCampaignRequirements(){
     const r = computeCampaignRequirements();
-    document.getElementById('reqPhonesValue').textContent = r.requiredPhones;
-    document.getElementById('reqProxiesValue').textContent = r.requiredProxies;
-    document.getElementById('reqAccountsValue').textContent = r.requiredAccounts;
-    document.getElementById('reqVideosValue').textContent = r.requiredVideos;
     document.getElementById('reqAccountsGapNote').textContent = r.accountGap > 0
       ? `${r.readyAccounts} ready account${r.readyAccounts === 1 ? '' : 's'} in selected pools — need ${r.accountGap} more to hit this target.`
       : `${r.readyAccounts} ready account${r.readyAccounts === 1 ? '' : 's'} in selected pools — enough to hit this target.`;
@@ -2454,9 +2446,11 @@
     const accountsStat = document.getElementById('stepFiveAccountsStat');
     const cloudphonesStat = document.getElementById('stepFiveCloudphonesStat');
     const proxiesStat = document.getElementById('stepFiveProxiesStat');
+    const videosStat = document.getElementById('stepFiveVideosStat');
     if(accountsStat) accountsStat.textContent = `${r.readyAccounts} / ${r.requiredAccounts}`;
     if(cloudphonesStat) cloudphonesStat.textContent = `${cpReady} / ${r.requiredPhones}`;
     if(proxiesStat) proxiesStat.textContent = `${proxyReady} / ${r.requiredProxies}`;
+    if(videosStat) videosStat.textContent = `${r.videosAdded} / ${r.requiredVideos}`;
 
     const badge = document.getElementById('stepFivePrdBadge');
     if(badge){
@@ -2464,6 +2458,7 @@
       if(r.readyAccounts < r.requiredAccounts) shortfalls.push(`${r.requiredAccounts - r.readyAccounts} more accounts`);
       if(cpReady < r.requiredPhones) shortfalls.push(`${r.requiredPhones - cpReady} more phones`);
       if(proxyReady < r.requiredProxies) shortfalls.push(`${r.requiredProxies - proxyReady} more proxies`);
+      if(r.videosAdded < r.requiredVideos) shortfalls.push(`${r.requiredVideos - r.videosAdded} more videos`);
       if(shortfalls.length === 0){
         badge.className = 'badge badge-ready';
         badge.style.display = 'inline-flex';
