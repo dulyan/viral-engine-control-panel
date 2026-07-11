@@ -943,6 +943,14 @@
               <div><label class="field-label">Expected Average Views Per Video</label><input type="number" id="campaignAvgViewsInput" min="1" step="1" value="1000" onchange="updateCampaignRequirements()"></div>
               <div><label class="field-label">Min Posts Per Day / Account</label><input type="number" id="campaignMinPostsPerDayInput" min="0" step="1" value="1" onchange="clampCampaignPosts('min'); updateCampaignRequirements()"></div>
               <div><label class="field-label">Max Posts Per Day / Account</label><input type="number" id="campaignMaxPostsPerDayInput" min="0" step="1" value="3" onchange="clampCampaignPosts('max'); updateCampaignRequirements()"></div>
+              <div>
+                <label class="field-label">Accounts Per Phone <span class="text-[var(--gray-400)]">(system median)</span></label>
+                <input type="text" id="medianAccountsPerPhoneDisplay" readonly value="1" style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed;">
+              </div>
+              <div>
+                <label class="field-label">Phones Per Proxy <span class="text-[var(--gray-400)]">(system median)</span></label>
+                <input type="text" id="medianPhonesPerProxyDisplay" readonly value="2" style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed;">
+              </div>
             </div>
             <div>
               <label class="field-label">Maintenance preset used during campaign</label>
@@ -1303,6 +1311,37 @@
     if(proxies.length === 0) return DEFAULT_PHONES_PER_PROXY;
     const totalPhones = proxies.reduce((sum, p) => sum + p.attachedPhoneIds.length, 0);
     return totalPhones / proxies.length;
+  }
+
+  function median(values){
+    if(values.length === 0) return null;
+    const sorted = [...values].sort((a,b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
+  // System-wide medians used as static, non-editable Campaign Formula Parameters —
+  // one ratio per pool / per proxy, not per-account or per-phone, so a handful of
+  // large pools/proxies can't skew the figure the way an average would.
+  function getMedianAccountsPerPhone(){
+    const ratios = pools
+      .map(p => (p.accounts || []))
+      .filter(accounts => accounts.length > 0)
+      .map(accounts => {
+        const maxPhoneNumber = accounts.reduce((max, a) => Math.max(max, a.phoneNumber || 1), 0);
+        return accounts.length / maxPhoneNumber;
+      });
+    return median(ratios) || 1;
+  }
+  function getMedianPhonesPerProxy(){
+    const counts = proxies.map(p => p.attachedPhoneIds.length).filter(n => n > 0);
+    return median(counts) || DEFAULT_PHONES_PER_PROXY;
+  }
+  function renderMedianCampaignFormulaFields(){
+    const accEl = document.getElementById('medianAccountsPerPhoneDisplay');
+    const proxEl = document.getElementById('medianPhonesPerProxyDisplay');
+    if(accEl) accEl.value = getMedianAccountsPerPhone().toFixed(1);
+    if(proxEl) proxEl.value = getMedianPhonesPerProxy().toFixed(1);
   }
 
   function renderAvgPhonesPerProxyStat(){
@@ -2425,20 +2464,20 @@
     const readyAccounts = selectedPools.reduce((sum, p) => sum + (p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0), 0);
     const accountGap = Math.max(0, requiredAccounts - readyAccounts);
 
-    // Accounts-per-phone comes from real Bulk Login grouping (phoneNumber assigned per account),
-    // not a separate estimate input — falls back to 1 account/phone when no accounts are logged yet.
-    const allSelectedAccounts = selectedPools.flatMap(p => p.accounts || []);
-    const maxPhoneNumber = allSelectedAccounts.reduce((max, a) => Math.max(max, a.phoneNumber || 1), 0);
-    const accountsPerPhone = allSelectedAccounts.length > 0 ? Math.max(1, allSelectedAccounts.length / maxPhoneNumber) : 1;
+    // Accounts-per-phone and phones-per-proxy are static system medians shown read-only
+    // in Campaign Formula Parameters — not editable, not scoped to the selected pools.
+    const accountsPerPhone = getMedianAccountsPerPhone();
+    const phonesPerProxy = getMedianPhonesPerProxy();
 
     const requiredPhones = Math.ceil(requiredAccounts / accountsPerPhone);
-    const requiredProxies = Math.ceil(requiredPhones / getAvgPhonesPerProxy());
+    const requiredProxies = Math.ceil(requiredPhones / phonesPerProxy);
     const videosAdded = Math.max(0, parseInt(document.getElementById('campaignVideosAddedInput').value) || 0);
 
     return { requiredVideos, requiredAccounts, readyAccounts, accountGap, requiredPhones, requiredProxies, videosAdded };
   }
 
   function updateCampaignRequirements(){
+    renderMedianCampaignFormulaFields();
     const r = computeCampaignRequirements();
     document.getElementById('reqAccountsGapNote').textContent = r.accountGap > 0
       ? `${r.readyAccounts} ready account${r.readyAccounts === 1 ? '' : 's'} in selected pools — need ${r.accountGap} more to hit this target.`
