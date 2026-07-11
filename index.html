@@ -915,6 +915,11 @@
         <label class="field-label">Accounts (one per line — username:password)</label>
         <textarea id="bulkLoginTextarea" rows="8" placeholder="user1:password1&#10;user2:password2&#10;user3:password3"></textarea>
       </div>
+      <div>
+        <label class="field-label">Accounts Per Phone</label>
+        <input type="number" id="bulkLoginAccountsPerPhoneInput" min="1" step="1" value="1">
+        <p class="text-xs text-[var(--gray-500)] mt-2">Accounts are grouped into phones in the order listed above — e.g. 3 per phone assigns the first 3 lines to Phone 1, the next 3 to Phone 2, and so on.</p>
+      </div>
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Change language to English</span>
         <div class="toggle on" data-toggle="bulkLoginLang"><div class="knob"></div></div>
@@ -1278,6 +1283,7 @@
     const pool = pools.find(p => p.id === poolId);
     document.getElementById('bulkLoginPoolName').textContent = pool.name;
     document.getElementById('bulkLoginTextarea').value = '';
+    document.getElementById('bulkLoginAccountsPerPhoneInput').value = 1;
     openModal('bulkLoginModal');
   }
   function submitBulkLogin(){
@@ -1286,10 +1292,12 @@
     const lines = document.getElementById('bulkLoginTextarea').value.split('\n').map(l => l.trim()).filter(Boolean);
     if(lines.length === 0) return;
     const langToEnglish = document.querySelector('[data-toggle="bulkLoginLang"]').classList.contains('on');
+    const accountsPerPhone = Math.max(1, parseInt(document.getElementById('bulkLoginAccountsPerPhoneInput').value) || 1);
     if(!pool.accounts) pool.accounts = [];
-    lines.forEach(line => {
+    lines.forEach((line, i) => {
       const [username] = line.split(':');
-      pool.accounts.push({ username: username || line, langToEnglish });
+      const phoneNumber = Math.floor(i / accountsPerPhone) + 1;
+      pool.accounts.push({ username: username || line, langToEnglish, phoneNumber });
     });
     pool.accountCount = pool.accounts.length;
     renderPools();
@@ -1307,6 +1315,7 @@
       <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3">
         <span class="font-semibold text-sm">${a.username}</span>
         <div class="flex items-center gap-2">
+          ${a.phoneNumber ? `<span class="badge badge-dark">Phone ${a.phoneNumber}</span>` : ''}
           ${a.langToEnglish ? '<span class="badge badge-notready">EN</span>' : ''}
           <span class="badge ${isReady ? 'badge-ready' : 'badge-notready'}">${isReady ? 'Ready for campaign' : 'Not ready'}</span>
         </div>
