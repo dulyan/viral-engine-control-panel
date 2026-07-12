@@ -25,7 +25,7 @@
   .pb-6{padding-bottom:1.5rem;} .pl-2{padding-left:.5rem;} .pt-4{padding-top:1rem;} .pt-5{padding-top:1.25rem;} .pt-6{padding-top:1.5rem;}
   .w-2{width:.5rem;} .w-10{width:2.5rem;} .w-64{width:16rem;} .w-full{width:100%;} .w-\[240px\]{width:240px;}
   .h-2{height:.5rem;} .h-10{height:2.5rem;} .h-52{height:13rem;} .h-fit{height:fit-content;} .h-full{height:100%;} .h-screen{height:100vh;}
-  .min-h-screen{min-height:100vh;} .max-w-\[1400px\]{max-width:1400px;} .max-w-\[140px\]{max-width:140px;} .min-w-\[220px\]{min-width:220px;} .max-h-\[50vh\]{max-height:50vh;}
+  .min-h-screen{min-height:100vh;} .max-w-\[1400px\]{max-width:1400px;} .max-w-\[140px\]{max-width:140px;} .min-w-\[220px\]{min-width:220px;} .max-h-\[50vh\]{max-height:50vh;} .max-h-\[160px\]{max-height:160px;}
   .rounded-full{border-radius:9999px;} .rounded-lg{border-radius:.5rem;} .rounded-t-lg{border-top-left-radius:.5rem;border-top-right-radius:.5rem;}
   .rounded-xl{border-radius:.75rem;} .rounded-2xl{border-radius:1rem;}
   .border{border-width:1px;} .border-t{border-top-width:1px;} .border-r{border-right-width:1px;}
@@ -563,7 +563,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
         <div class="card rounded-2xl p-6 shadow-soft">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-lg">2. Cloudphones</h3>
@@ -581,6 +581,15 @@
           <p class="text-xs text-[var(--gray-500)] mb-4">Attach a proxy to a cloudphone, then check the connection.</p>
           <div class="flex flex-col gap-3" id="proxyList"></div>
         </div>
+      </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg">4. Cloudphone Pools</h3>
+          <button class="btn-primary" onclick="openAddCloudphonePool()">+ Create Pool</button>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Group phones and proxies together, then set a phones-per-proxy ratio — phones are distributed across the chosen proxies automatically.</p>
+        <div class="flex flex-col gap-3" id="cloudphonePoolList"></div>
       </div>
     </section>
 
@@ -1106,6 +1115,32 @@
   </div>
 </div>
 
+<div class="modal" id="addCloudphonePoolModal">
+  <div class="modal-content">
+    <h3 class="font-bold text-lg mb-4">Create Cloudphone Pool</h3>
+    <div class="flex flex-col gap-4 mb-6">
+      <div><label class="field-label">Pool Name</label><input type="text" id="cpPoolNameInput" placeholder="e.g. US Pool 1"></div>
+      <div>
+        <label class="field-label">Assign Phones</label>
+        <div class="flex flex-col gap-2 max-h-[160px] overflow-y-auto" id="cpPoolPhoneChecklist"></div>
+      </div>
+      <div>
+        <label class="field-label">Assign Proxies</label>
+        <div class="flex flex-col gap-2 max-h-[160px] overflow-y-auto" id="cpPoolProxyChecklist"></div>
+      </div>
+      <div>
+        <label class="field-label">Phones Per Proxy</label>
+        <input type="number" id="cpPoolPhonesPerProxyInput" min="1" step="1" value="1">
+        <p class="text-xs text-[var(--gray-500)] mt-2">Assigned phones are split across the assigned proxies in this ratio — e.g. 2 per proxy gives the first 2 phones to Proxy 1, the next 2 to Proxy 2, and so on.</p>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button class="btn-secondary" onclick="closeModal('addCloudphonePoolModal')">Cancel</button>
+      <button class="btn-primary" onclick="addCloudphonePool()">Create Pool</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="addBrandModal">
   <div class="modal-content">
     <h3 class="font-bold text-lg mb-4">Add Brand</h3>
@@ -1264,6 +1299,8 @@
   let cpCounter = 0, proxyCounter = 0;
   // Fallback ratio used for campaign requirement estimates before any proxies exist.
   const DEFAULT_PHONES_PER_PROXY = 2;
+  let cloudphonePools = []; // { id, name, phoneIds: [cloudphoneId, ...], proxyIds: [proxyId, ...], phonesPerProxy }
+  let cpPoolCounter = 0;
 
   function renderCloudphones(){
     const list = document.getElementById('cloudphoneList');
@@ -1377,8 +1414,65 @@
     setTimeout(()=>{ p.status='Ready'; renderProxies(); }, 1400);
   }
 
+  // ---------- Cloudphone Pools ----------
+  function openAddCloudphonePool(){
+    document.getElementById('cpPoolNameInput').value = '';
+    document.getElementById('cpPoolPhonesPerProxyInput').value = 1;
+    document.getElementById('cpPoolPhoneChecklist').innerHTML = cloudphones.map(cp => `
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" value="${cp.id}">
+        <span>${cp.name}</span>
+      </label>`).join('') || `<p class="text-xs text-[var(--gray-400)]">Add a cloudphone first.</p>`;
+    document.getElementById('cpPoolProxyChecklist').innerHTML = proxies.map(p => `
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" value="${p.id}">
+        <span>${p.addr}</span>
+      </label>`).join('') || `<p class="text-xs text-[var(--gray-400)]">Add a proxy first.</p>`;
+    openModal('addCloudphonePoolModal');
+  }
+  function addCloudphonePool(){
+    const name = document.getElementById('cpPoolNameInput').value.trim();
+    const phoneIds = Array.from(document.querySelectorAll('#cpPoolPhoneChecklist input:checked')).map(cb => +cb.value);
+    const proxyIds = Array.from(document.querySelectorAll('#cpPoolProxyChecklist input:checked')).map(cb => +cb.value);
+    const phonesPerProxy = Math.max(1, parseInt(document.getElementById('cpPoolPhonesPerProxyInput').value) || 1);
+    if(!name || phoneIds.length === 0 || proxyIds.length === 0) return;
+
+    // Distribute phones across the chosen proxies in order, phonesPerProxy at a time —
+    // the same chunked-assignment pattern Bulk Login already uses for accounts-per-phone.
+    proxyIds.forEach((proxyId, i) => {
+      const proxy = proxies.find(p => p.id === proxyId);
+      if(!proxy) return;
+      const slice = phoneIds.slice(i * phonesPerProxy, (i + 1) * phonesPerProxy);
+      proxy.attachedPhoneIds = slice;
+    });
+
+    cpPoolCounter++;
+    cloudphonePools.push({ id: cpPoolCounter, name, phoneIds, proxyIds, phonesPerProxy });
+    renderCloudphonePools();
+    renderProxies();
+    closeModal('addCloudphonePoolModal');
+  }
+  function renderCloudphonePools(){
+    const list = document.getElementById('cloudphonePoolList');
+    if(!list) return;
+    list.innerHTML = cloudphonePools.map(pool => {
+      const phoneNames = pool.phoneIds.map(id => cloudphones.find(cp => cp.id === id)).filter(Boolean).map(cp => cp.name);
+      const proxyAddrs = pool.proxyIds.map(id => proxies.find(p => p.id === id)).filter(Boolean).map(p => p.addr);
+      return `
+      <div class="border border-[var(--gray-100)] rounded-xl px-4 py-3">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-semibold text-sm">${pool.name}</span>
+          <span class="badge badge-dark">${pool.phonesPerProxy} phone${pool.phonesPerProxy===1?'':'s'}/proxy</span>
+        </div>
+        <p class="text-xs text-[var(--gray-500)]">${phoneNames.length} phone${phoneNames.length===1?'':'s'}: ${phoneNames.join(', ') || '—'}</p>
+        <p class="text-xs text-[var(--gray-500)]">${proxyAddrs.length} prox${proxyAddrs.length===1?'y':'ies'}: ${proxyAddrs.join(', ') || '—'}</p>
+      </div>`;
+    }).join('') || `<p class="text-sm text-[var(--gray-400)]">No cloudphone pools yet.</p>`;
+  }
+
   renderCloudphones();
   renderProxies();
+  renderCloudphonePools();
 
   // ---------- Brands / Projects ----------
   // Each brand owns its own list of projects: { id, name, projects: [{id, name, stats}], stats }
