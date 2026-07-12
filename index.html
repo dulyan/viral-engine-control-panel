@@ -1413,10 +1413,11 @@
       });
     return median(ratios) || 1;
   }
-  function getMedianPhonesPerProxy(cloudphonePoolId){
-    if(cloudphonePoolId){
-      const pool = cloudphonePools.find(cp => cp.id === cloudphonePoolId);
-      if(pool) return pool.phonesPerProxy;
+  function getMedianPhonesPerProxy(cloudphonePoolIdOrIds){
+    const ids = Array.isArray(cloudphonePoolIdOrIds) ? cloudphonePoolIdOrIds : (cloudphonePoolIdOrIds ? [cloudphonePoolIdOrIds] : []);
+    if(ids.length > 0){
+      const ratios = cloudphonePools.filter(cp => ids.includes(cp.id)).map(cp => cp.phonesPerProxy);
+      if(ratios.length > 0) return median(ratios);
     }
     const counts = proxies.map(p => p.attachedPhoneIds.length).filter(n => n > 0);
     return median(counts) || DEFAULT_PHONES_PER_PROXY;
@@ -1776,11 +1777,23 @@
     activeCampaignDetailId = null;
     showCampaignsView('library');
   }
+  function campaignPoolNames(c){
+    const cpNames = c.cloudphonePoolIds.map(id => cloudphonePools.find(cp => cp.id === id)).filter(Boolean).map(cp => cp.name);
+    const accNames = c.accountPoolIds.map(id => pools.find(p => p.id === id)).filter(Boolean).map(p => p.name);
+    return { cpNames, accNames };
+  }
+
   function renderCampaignDetail(){
     const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
     if(!c){ closeCampaignDetail(); return; }
+    recomputeCampaignStats(c);
     document.getElementById('campaignDetailTitle').textContent = c.name;
     document.getElementById('campaignDetailSubtitle').textContent = `${c.brandName} / ${c.projectName}`;
+
+    const { cpNames, accNames } = campaignPoolNames(c);
+    const availableCpPools = cloudphonePools.filter(cp => !c.cloudphonePoolIds.includes(cp.id));
+    const availableAccPools = pools.filter(p => !c.accountPoolIds.includes(p.id));
+
     document.getElementById('campaignDetailBody').innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
         <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold">${c.stats.accountsActual} / ${c.stats.accountsRequired}</p></div>
@@ -1788,17 +1801,60 @@
         <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold">${c.stats.proxiesActual} / ${c.stats.proxiesRequired}</p></div>
         <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Videos Added</p><p class="text-xl font-bold">${c.stats.videosActual} / ${c.stats.videosRequired}</p></div>
       </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft mb-5">
+        <h3 class="font-bold text-lg mb-4">Edit Campaign</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div>
+            <label class="field-label">Cloudphone Pools</label>
+            <div class="flex flex-col gap-2 mb-2">
+              ${cpNames.map((name, i) => `
+                <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-lg px-3 py-2">
+                  <span class="text-sm">${name}</span>
+                  <button class="btn-secondary !text-xs !py-1 !px-2" onclick="removeCampaignCloudphonePool(${c.cloudphonePoolIds[i]})">Remove</button>
+                </div>`).join('') || `<p class="text-xs text-[var(--gray-400)]">No cloudphone pools assigned yet.</p>`}
+            </div>
+            <div class="flex gap-2">
+              <select id="campaignAddCloudphonePoolSelect" class="flex-1">
+                <option value="">— Choose a pool to add —</option>
+                ${availableCpPools.map(cp => `<option value="${cp.id}">${cp.name}</option>`).join('')}
+              </select>
+              <button class="btn-secondary !text-xs !px-3" onclick="addCampaignCloudphonePool()">+ Add</button>
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Account Pools</label>
+            <div class="flex flex-col gap-2 mb-2">
+              ${accNames.map((name, i) => `
+                <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-lg px-3 py-2">
+                  <span class="text-sm">${name}</span>
+                  <button class="btn-secondary !text-xs !py-1 !px-2" onclick="removeCampaignAccountPool(${c.accountPoolIds[i]})">Remove</button>
+                </div>`).join('') || `<p class="text-xs text-[var(--gray-400)]">No account pools assigned yet.</p>`}
+            </div>
+            <div class="flex gap-2">
+              <select id="campaignAddAccountPoolSelect" class="flex-1">
+                <option value="">— Choose a pool to add —</option>
+                ${availableAccPools.map(p => `<option value="${p.id}">${p.name} — ${p.platform}</option>`).join('')}
+              </select>
+              <button class="btn-secondary !text-xs !px-3" onclick="addCampaignAccountPool()">+ Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="field-label">Campaign Time Period (days)</label><input type="number" min="1" step="1" value="${c.timePeriod}" onchange="updateCampaignDetailField('timePeriod', this.value)"></div>
+          <div><label class="field-label">Expected Average Views Per Video</label><input type="number" min="1" step="1" value="${c.avgViews}" onchange="updateCampaignDetailField('avgViews', this.value)"></div>
+          <div><label class="field-label">Min Posts Per Day / Account</label><input type="number" min="0" step="1" value="${c.minPostsPerDay}" onchange="updateCampaignDetailField('minPostsPerDay', this.value)"></div>
+          <div><label class="field-label">Max Posts Per Day / Account</label><input type="number" min="0" step="1" value="${c.maxPostsPerDay}" onchange="updateCampaignDetailField('maxPostsPerDay', this.value)"></div>
+          <div><label class="field-label">Videos Added</label><input type="number" min="0" step="1" value="${c.videosAddedManual}" onchange="updateCampaignDetailField('videosAddedManual', this.value)"></div>
+        </div>
+      </div>
+
       <div class="card rounded-2xl p-6 shadow-soft mb-5">
         <h3 class="font-bold text-lg mb-4">Campaign Details</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Primary Target</p><p class="font-medium">${c.targetMode === 'videos' ? `Total Videos Posted (${c.targetVideos})` : `Total Views (${c.targetViews})`}</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphone Pool</p><p class="font-medium">${c.cloudphonePoolName || '—'}</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Account Pool</p><p class="font-medium">${c.accountPoolName || '—'}</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Time Period</p><p class="font-medium">${c.timePeriod} days</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Expected Avg Views / Video</p><p class="font-medium">${c.avgViews}</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Posts / Day / Account</p><p class="font-medium">${c.minPostsPerDay}–${c.maxPostsPerDay}</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Per Phone</p><p class="font-medium">${c.accountsPerPhone}</p></div>
-          <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones Per Proxy</p><p class="font-medium">${c.phonesPerProxy}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Per Phone</p><p class="font-medium">${getMedianAccountsPerPhone(c.accountPoolIds).toFixed(1)}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones Per Proxy</p><p class="font-medium">${getMedianPhonesPerProxy(c.cloudphonePoolIds).toFixed(1)}</p></div>
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Maintenance During Campaign</p><p class="font-medium">${c.duringMaintenanceName || 'None'}</p></div>
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Maintenance After Campaign</p><p class="font-medium">${c.afterMaintenanceName || 'None'}</p></div>
         </div>
@@ -1824,6 +1880,43 @@
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Featured Account</p><p class="font-medium">${c.featuredAccount || '—'}</p></div>
         </div>
       </div>`;
+  }
+
+  function updateCampaignDetailField(field, value){
+    const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
+    if(!c) return;
+    c[field] = value;
+    renderCampaignDetail();
+  }
+  function addCampaignCloudphonePool(){
+    const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
+    const id = +document.getElementById('campaignAddCloudphonePoolSelect').value;
+    if(!c || !id) return;
+    c.cloudphonePoolIds.push(id);
+    renderCampaignDetail();
+    renderCampaignLibrary();
+  }
+  function removeCampaignCloudphonePool(poolId){
+    const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
+    if(!c) return;
+    c.cloudphonePoolIds = c.cloudphonePoolIds.filter(id => id !== poolId);
+    renderCampaignDetail();
+    renderCampaignLibrary();
+  }
+  function addCampaignAccountPool(){
+    const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
+    const id = +document.getElementById('campaignAddAccountPoolSelect').value;
+    if(!c || !id) return;
+    c.accountPoolIds.push(id);
+    renderCampaignDetail();
+    renderCampaignLibrary();
+  }
+  function removeCampaignAccountPool(poolId){
+    const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
+    if(!c) return;
+    c.accountPoolIds = c.accountPoolIds.filter(id => id !== poolId);
+    renderCampaignDetail();
+    renderCampaignLibrary();
   }
 
   // ---------- Account pools ----------
@@ -2794,8 +2887,8 @@
     const project = brand ? brand.projects.find(p => p.id === activeCampaignProjectId) : null;
     const r = computeCampaignRequirements();
     const targetCard = document.querySelector('#targetChoices .choice-card.selected');
-    const cloudphonePool = cloudphonePools.find(cp => cp.id === +document.getElementById('campaignCloudphonePoolSelect').value);
-    const accountPool = pools.find(p => p.id === +document.getElementById('campaignPoolSelect').value);
+    const cloudphonePoolId = +document.getElementById('campaignCloudphonePoolSelect').value || null;
+    const accountPoolId = +document.getElementById('campaignPoolSelect').value || null;
     const duringPreset = presetLibrary.find(pr => pr.id === +document.getElementById('campaignDuringMaintenanceSelect').value);
     const afterPreset = presetLibrary.find(pr => pr.id === +document.getElementById('campaignAfterMaintenanceSelect').value);
     const videoSourceCard = document.querySelector('[data-source].selected');
@@ -2809,14 +2902,13 @@
       targetMode: targetCard ? targetCard.dataset.target : 'views',
       targetViews: document.getElementById('targetViewsInput').value || 0,
       targetVideos: document.getElementById('targetVideosInput').value || 0,
-      cloudphonePoolName: cloudphonePool ? cloudphonePool.name : null,
-      accountPoolName: accountPool ? accountPool.name : null,
+      cloudphonePoolIds: cloudphonePoolId ? [cloudphonePoolId] : [],
+      accountPoolIds: accountPoolId ? [accountPoolId] : [],
       timePeriod: document.getElementById('campaignTimePeriodInput').value,
       avgViews: document.getElementById('campaignAvgViewsInput').value,
       minPostsPerDay: document.getElementById('campaignMinPostsPerDayInput').value,
       maxPostsPerDay: document.getElementById('campaignMaxPostsPerDayInput').value,
-      accountsPerPhone: document.getElementById('medianAccountsPerPhoneDisplay').value,
-      phonesPerProxy: document.getElementById('medianPhonesPerProxyDisplay').value,
+      videosAddedManual: document.getElementById('campaignVideosAddedInput').value,
       duringMaintenanceName: duringPreset ? duringPreset.name : null,
       afterMaintenanceName: afterPreset ? afterPreset.name : null,
       changeProfile: document.getElementById('changeProfileToggle').classList.contains('on'),
@@ -2837,6 +2929,40 @@
       },
     });
     renderCampaignLibrary();
+  }
+
+  // Recomputes a launched campaign's stats from its own stored fields (arrays of pool ids,
+  // not the wizard DOM) — used whenever the operator edits a campaign after launch.
+  function recomputeCampaignStats(c){
+    const timePeriod = Math.max(1, parseFloat(c.timePeriod) || 1);
+    const avgViews = Math.max(1, parseFloat(c.avgViews) || 1);
+    const minPosts = Math.max(0, parseFloat(c.minPostsPerDay) || 0);
+    const maxPosts = Math.max(0, parseFloat(c.maxPostsPerDay) || 0);
+    const postsPerDayPerAccount = (minPosts + maxPosts) / 2;
+
+    const requiredVideos = c.targetMode === 'videos'
+      ? Math.ceil(parseFloat(c.targetVideos) || 0)
+      : Math.ceil((parseFloat(c.targetViews) || 0) / avgViews);
+
+    const availableFraction = c.duringMaintenanceName ? 0.9 : 1.0;
+    const dailyThroughputPerAccount = Math.max(0.01, postsPerDayPerAccount * timePeriod);
+    const requiredAccounts = Math.ceil(Math.ceil(requiredVideos / dailyThroughputPerAccount) / availableFraction);
+
+    const assignedPools = pools.filter(p => c.accountPoolIds.includes(p.id));
+    const readyAccounts = assignedPools.reduce((sum, p) => sum + (p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0), 0);
+
+    const accountsPerPhone = getMedianAccountsPerPhone(c.accountPoolIds);
+    const phonesPerProxy = getMedianPhonesPerProxy(c.cloudphonePoolIds);
+    const requiredPhones = Math.ceil(requiredAccounts / accountsPerPhone);
+    const requiredProxies = Math.ceil(requiredPhones / phonesPerProxy);
+    const videosAdded = Math.max(0, parseInt(c.videosAddedManual) || 0);
+
+    c.stats = {
+      accountsActual: readyAccounts, accountsRequired: requiredAccounts,
+      phonesActual: cloudphones.filter(cp=>cp.status==='Ready').length, phonesRequired: requiredPhones,
+      proxiesActual: proxies.filter(p=>p.status==='Ready').length, proxiesRequired: requiredProxies,
+      videosActual: videosAdded, videosRequired: requiredVideos,
+    };
   }
 
   function wizardNav(dir){
