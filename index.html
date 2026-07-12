@@ -1794,12 +1794,54 @@
     const availableCpPools = cloudphonePools.filter(cp => !c.cloudphonePoolIds.includes(cp.id));
     const availableAccPools = pools.filter(p => !c.accountPoolIds.includes(p.id));
 
+    const totalAccounts = c.accountPoolIds.reduce((sum,id) => {
+      const p = pools.find(pool => pool.id === id);
+      return sum + (p ? (p.accountCount || 0) : 0);
+    }, 0);
+    const projectStats = { ...c.projectStats, totalAccounts, totalVideos: c.stats.videosActual };
+
     document.getElementById('campaignDetailBody').innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
-        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold">${c.stats.accountsActual} / ${c.stats.accountsRequired}</p></div>
-        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold">${c.stats.phonesActual} / ${c.stats.phonesRequired}</p></div>
-        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold">${c.stats.proxiesActual} / ${c.stats.proxiesRequired}</p></div>
-        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Videos Added</p><p class="text-xl font-bold">${c.stats.videosActual} / ${c.stats.videosRequired}</p></div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-5">
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Views</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalViews}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Goal Region Views</p>
+          <p class="text-2xl font-extrabold">${projectStats.goalRegionViews}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Accounts</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalAccounts}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Videos</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalVideos}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Subscribers</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalSubscribers}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Likes</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalLikes}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Comments</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalComments}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Total Shares</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalShares}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Number of Clicks</p>
+          <p class="text-2xl font-extrabold">${projectStats.totalClicks}</p>
+        </div>
+        <div class="card rounded-2xl p-5 shadow-soft text-center">
+          <p class="text-xs text-[var(--gray-500)] uppercase tracking-wider mb-2">Bot Activity</p>
+          <p class="text-2xl font-extrabold">≈ ${projectStats.botActivityPct}%</p>
+        </div>
       </div>
 
       <div class="card rounded-2xl p-6 shadow-soft mb-5">
@@ -1878,6 +1920,16 @@
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Hashtags</p><p class="font-medium">${c.hashtags || '—'}</p></div>
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Location</p><p class="font-medium">${c.location || '—'}</p></div>
           <div><p class="text-xs text-[var(--gray-500)] mb-1">Featured Account</p><p class="font-medium">${c.featuredAccount || '—'}</p></div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <p class="text-[.68rem] font-semibold uppercase tracking-wider text-[var(--gray-400)] mb-3 px-1">Technical Stats</p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold">${c.stats.accountsActual} / ${c.stats.accountsRequired}</p></div>
+          <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold">${c.stats.phonesActual} / ${c.stats.phonesRequired}</p></div>
+          <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold">${c.stats.proxiesActual} / ${c.stats.proxiesRequired}</p></div>
+          <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Videos Added</p><p class="text-xl font-bold">${c.stats.videosActual} / ${c.stats.videosRequired}</p></div>
         </div>
       </div>`;
   }
@@ -2927,6 +2979,7 @@
         proxiesActual: proxies.filter(p=>p.status==='Ready').length, proxiesRequired: r.requiredProxies,
         videosActual: r.videosAdded, videosRequired: r.requiredVideos,
       },
+      projectStats: blankStats(),
     });
     renderCampaignLibrary();
   }
