@@ -952,14 +952,14 @@
           </div>
 
           <div class="mb-5">
-            <label class="field-label">Choose Account Pools</label>
-            <p class="text-xs text-[var(--gray-500)] mb-2">Select every account pool this campaign should draw from. Its accounts-per-phone ratio also feeds the formula below.</p>
-            <div class="flex flex-col gap-2" id="campaignPoolChecklist"></div>
+            <label class="field-label">Choose Account Pool</label>
+            <p class="text-xs text-[var(--gray-500)] mb-2">Its accounts-per-phone ratio feeds Campaign Formula Parameters below.</p>
+            <select id="campaignPoolSelect" onchange="updateCampaignPoolCounts()"></select>
             <div class="flex items-center gap-4 mt-3 text-sm" id="campaignPoolCounts">
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:#15803d;"></span><span id="campaignPoolReady">0</span> ready</span>
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:var(--gray-400);"></span><span id="campaignPoolNotReady">0</span> not ready</span>
               <span class="text-[var(--gray-400)]">·</span>
-              <span><span id="campaignPoolTotal">0</span> accounts total across <span id="campaignPoolCount">0</span> pool(s)</span>
+              <span><span id="campaignPoolTotal">0</span> accounts total</span>
             </div>
           </div>
 
@@ -2629,38 +2629,27 @@
     }
   }
 
+  // Kept as an array internally (single element) so downstream .filter()/.includes()
+  // call sites don't need to branch between single- and multi-select shapes.
   let selectedCampaignPoolIds = [];
 
   function renderCampaignPoolSelect(){
-    const list = document.getElementById('campaignPoolChecklist');
-    selectedCampaignPoolIds = selectedCampaignPoolIds.filter(id => pools.some(p => p.id === id));
-    list.innerHTML = pools.map(p => {
-      const checked = selectedCampaignPoolIds.includes(p.id) ? 'checked' : '';
-      const ready = p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0;
-      return `
-      <label class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3 cursor-pointer">
-        <span class="flex items-center gap-3">
-          <input type="checkbox" value="${p.id}" onchange="toggleCampaignPool(${p.id}, this.checked)" ${checked}>
-          <span class="text-sm font-medium">${p.name} — ${p.platform}</span>
-        </span>
-        <span class="text-xs text-[var(--gray-500)]">${ready} ready / ${p.accountCount || 0} total</span>
-      </label>`;
-    }).join('') || '<p class="text-sm text-[var(--gray-400)]">No account pools yet — create one on the Accounts &amp; Warmup page.</p>';
-    updateCampaignPoolCounts();
-  }
-  function toggleCampaignPool(poolId, isChecked){
-    selectedCampaignPoolIds = selectedCampaignPoolIds.filter(id => id !== poolId);
-    if(isChecked) selectedCampaignPoolIds.push(poolId);
+    const sel = document.getElementById('campaignPoolSelect');
+    const prevValue = selectedCampaignPoolIds[0];
+    sel.innerHTML = pools.map(p => `<option value="${p.id}">${p.name} — ${p.platform}</option>`).join('') || '<option disabled selected>No account pools yet</option>';
+    if(pools.some(p => p.id === prevValue)) sel.value = prevValue;
+    selectedCampaignPoolIds = sel.value ? [+sel.value] : [];
     updateCampaignPoolCounts();
   }
   function updateCampaignPoolCounts(){
+    const sel = document.getElementById('campaignPoolSelect');
+    selectedCampaignPoolIds = sel.value ? [+sel.value] : [];
     const selectedPools = pools.filter(p => selectedCampaignPoolIds.includes(p.id));
     const total = selectedPools.reduce((sum, p) => sum + (p.accountCount || 0), 0);
     const ready = selectedPools.reduce((sum, p) => sum + (p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0), 0);
     document.getElementById('campaignPoolReady').textContent = ready;
     document.getElementById('campaignPoolNotReady').textContent = total - ready;
     document.getElementById('campaignPoolTotal').textContent = total;
-    document.getElementById('campaignPoolCount').textContent = selectedPools.length;
     updateCampaignRequirements();
   }
 
