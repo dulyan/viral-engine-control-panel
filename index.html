@@ -546,6 +546,15 @@
       </div>
 
       <div class="card rounded-2xl p-6 shadow-soft mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg">Cloudphone Pools</h3>
+          <button class="btn-primary" onclick="openAddCloudphonePool()">+ Create Pool</button>
+        </div>
+        <p class="text-xs text-[var(--gray-500)] mb-4">Group phones and proxies together, then set a phones-per-proxy ratio — phones are distributed across the chosen proxies automatically.</p>
+        <div class="flex flex-col gap-3" id="cloudphonePoolList"></div>
+      </div>
+
+      <div class="card rounded-2xl p-6 shadow-soft mb-6">
         <h3 class="font-bold text-lg mb-4">1. Choose Cloudphone Provider</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="providerChoices">
           <div class="choice-card selected" data-provider="Geelark">
@@ -563,7 +572,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div class="card rounded-2xl p-6 shadow-soft">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-lg">2. Cloudphones</h3>
@@ -581,15 +590,6 @@
           <p class="text-xs text-[var(--gray-500)] mb-4">Attach a proxy to a cloudphone, then check the connection.</p>
           <div class="flex flex-col gap-3" id="proxyList"></div>
         </div>
-      </div>
-
-      <div class="card rounded-2xl p-6 shadow-soft">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-bold text-lg">4. Cloudphone Pools</h3>
-          <button class="btn-primary" onclick="openAddCloudphonePool()">+ Create Pool</button>
-        </div>
-        <p class="text-xs text-[var(--gray-500)] mb-4">Group phones and proxies together, then set a phones-per-proxy ratio — phones are distributed across the chosen proxies automatically.</p>
-        <div class="flex flex-col gap-3" id="cloudphonePoolList"></div>
       </div>
     </section>
 
