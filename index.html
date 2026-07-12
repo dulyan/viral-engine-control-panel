@@ -883,6 +883,38 @@
     <!-- ================= CAMPAIGNS ================= -->
     <section class="section" id="page-campaigns">
 
+      <!-- ========== Active Campaigns library (default view) ========== -->
+      <div id="page-campaigns-library">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="font-bold text-lg">Active Campaigns</h3>
+            <p class="text-xs text-[var(--gray-500)]">Every campaign that's been launched. Click one to see its full stats and info.</p>
+          </div>
+          <button class="btn-primary" onclick="openCampaignSetup()">+ Create New Campaign</button>
+        </div>
+        <div class="flex flex-col gap-3" id="campaignLibraryList"></div>
+      </div>
+
+      <!-- ========== Campaign detail (read-only) ========== -->
+      <div id="page-campaigns-detail" style="display:none;">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <button class="icon-btn" aria-label="Back" onclick="closeCampaignDetail()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div>
+              <p class="font-extrabold text-2xl tracking-tight" id="campaignDetailTitle">—</p>
+              <p class="text-sm text-[var(--gray-500)]" id="campaignDetailSubtitle">Campaign Overview</p>
+            </div>
+          </div>
+          <span class="badge badge-active">Active</span>
+        </div>
+        <div id="campaignDetailBody"></div>
+      </div>
+
+      <!-- ========== Campaign setup (gate + wizard) ========== -->
+      <div id="page-campaigns-setup" style="display:none;">
+
       <!-- Gate: choose brand & project before starting a campaign -->
       <div class="card rounded-2xl p-6 shadow-soft" id="campaignGateCard">
         <h3 class="font-bold text-lg mb-1">Assign Campaign</h3>
@@ -1059,11 +1091,11 @@
         <div class="wizard-step" data-wstep="4">
           <h3 class="font-bold text-lg mb-4">Posting Data</h3>
           <div class="grid grid-cols-1 gap-4">
-            <div><label class="field-label">Description</label><textarea rows="3" placeholder="Write a caption..."></textarea></div>
+            <div><label class="field-label">Description</label><textarea rows="3" id="campaignDescriptionInput" placeholder="Write a caption..."></textarea></div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div><label class="field-label">Hashtags</label><input type="text" placeholder="#trend #viral"></div>
-              <div><label class="field-label">Location</label><input type="text" placeholder="e.g. New York"></div>
-              <div><label class="field-label">Featured Account</label><input type="text" placeholder="@handle"></div>
+              <div><label class="field-label">Hashtags</label><input type="text" id="campaignHashtagsInput" placeholder="#trend #viral"></div>
+              <div><label class="field-label">Location</label><input type="text" id="campaignLocationInput" placeholder="e.g. New York"></div>
+              <div><label class="field-label">Featured Account</label><input type="text" id="campaignFeaturedAccountInput" placeholder="@handle"></div>
             </div>
           </div>
         </div>
@@ -1084,6 +1116,8 @@
           <button class="btn-secondary" id="wizardBack" onclick="wizardNav(-1)" disabled>Back</button>
           <button class="btn-primary" id="wizardNext" onclick="wizardNav(1)">Next</button>
         </div>
+      </div>
+
       </div>
     </section>
 
@@ -1681,10 +1715,15 @@
   document.getElementById('campaignGateBrand').addEventListener('change', renderCampaignGate);
   renderCampaignGate();
 
+  let activeCampaignBrandId = null;
+  let activeCampaignProjectId = null;
+
   function startCampaignWizard(){
     const brand = brands.find(b => b.id === +document.getElementById('campaignGateBrand').value);
     const project = brand ? brand.projects.find(p => p.id === +document.getElementById('campaignGateProject').value) : null;
     if(!brand || !project) return;
+    activeCampaignBrandId = brand.id;
+    activeCampaignProjectId = project.id;
     document.getElementById('campaignAssignedLabel').textContent = `${brand.name} / ${project.name}`;
     document.getElementById('campaignGateCard').style.display = 'none';
     document.getElementById('campaignWizardCard').style.display = 'block';
@@ -1695,6 +1734,96 @@
     document.getElementById('campaignWizardCard').style.display = 'none';
     document.getElementById('campaignGateCard').style.display = 'block';
     renderCampaignGate();
+  }
+
+  // ---------- Campaigns library / detail / setup navigation ----------
+  let campaigns = [];
+  let campaignCounter = 0;
+  let activeCampaignDetailId = null;
+
+  function showCampaignsView(view){
+    document.getElementById('page-campaigns-library').style.display = view === 'library' ? 'block' : 'none';
+    document.getElementById('page-campaigns-detail').style.display = view === 'detail' ? 'block' : 'none';
+    document.getElementById('page-campaigns-setup').style.display = view === 'setup' ? 'block' : 'none';
+  }
+  function openCampaignSetup(){
+    document.getElementById('campaignGateCard').style.display = 'block';
+    document.getElementById('campaignWizardCard').style.display = 'none';
+    renderCampaignGate();
+    showCampaignsView('setup');
+  }
+  function renderCampaignLibrary(){
+    const list = document.getElementById('campaignLibraryList');
+    if(!list) return;
+    list.innerHTML = campaigns.map(c => `
+      <div class="flex items-center justify-between border border-[var(--gray-100)] rounded-xl px-4 py-3 cursor-pointer" onclick="openCampaignDetail(${c.id})">
+        <div>
+          <p class="font-semibold text-sm">${c.name}</p>
+          <p class="text-xs text-[var(--gray-500)]">${c.brandName} / ${c.projectName}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-[var(--gray-500)]">${c.targetMode === 'videos' ? `${c.targetVideos} videos` : `${c.targetViews} views`} target</span>
+          <span class="badge badge-active">Active</span>
+        </div>
+      </div>`).join('') || `<p class="text-sm text-[var(--gray-400)]">No campaigns launched yet — click Create New Campaign to set one up.</p>`;
+  }
+  function openCampaignDetail(campaignId){
+    activeCampaignDetailId = campaignId;
+    renderCampaignDetail();
+    showCampaignsView('detail');
+  }
+  function closeCampaignDetail(){
+    activeCampaignDetailId = null;
+    showCampaignsView('library');
+  }
+  function renderCampaignDetail(){
+    const c = campaigns.find(camp => camp.id === activeCampaignDetailId);
+    if(!c){ closeCampaignDetail(); return; }
+    document.getElementById('campaignDetailTitle').textContent = c.name;
+    document.getElementById('campaignDetailSubtitle').textContent = `${c.brandName} / ${c.projectName}`;
+    document.getElementById('campaignDetailBody').innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Connected</p><p class="text-xl font-bold">${c.stats.accountsActual} / ${c.stats.accountsRequired}</p></div>
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphones Connected</p><p class="text-xl font-bold">${c.stats.phonesActual} / ${c.stats.phonesRequired}</p></div>
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Proxies Connected</p><p class="text-xl font-bold">${c.stats.proxiesActual} / ${c.stats.proxiesRequired}</p></div>
+        <div class="card rounded-xl p-4 !border-[var(--gray-100)]"><p class="text-xs text-[var(--gray-500)] mb-1">Videos Added</p><p class="text-xl font-bold">${c.stats.videosActual} / ${c.stats.videosRequired}</p></div>
+      </div>
+      <div class="card rounded-2xl p-6 shadow-soft mb-5">
+        <h3 class="font-bold text-lg mb-4">Campaign Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Primary Target</p><p class="font-medium">${c.targetMode === 'videos' ? `Total Videos Posted (${c.targetVideos})` : `Total Views (${c.targetViews})`}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Cloudphone Pool</p><p class="font-medium">${c.cloudphonePoolName || '—'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Account Pool</p><p class="font-medium">${c.accountPoolName || '—'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Time Period</p><p class="font-medium">${c.timePeriod} days</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Expected Avg Views / Video</p><p class="font-medium">${c.avgViews}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Posts / Day / Account</p><p class="font-medium">${c.minPostsPerDay}–${c.maxPostsPerDay}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Accounts Per Phone</p><p class="font-medium">${c.accountsPerPhone}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Phones Per Proxy</p><p class="font-medium">${c.phonesPerProxy}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Maintenance During Campaign</p><p class="font-medium">${c.duringMaintenanceName || 'None'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Maintenance After Campaign</p><p class="font-medium">${c.afterMaintenanceName || 'None'}</p></div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-6 shadow-soft mb-5">
+        <h3 class="font-bold text-lg mb-4">Account Settings</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Change Profile Info</p><p class="font-medium">${c.changeProfile ? 'On' : 'Off'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Professional Creator Account</p><p class="font-medium">${c.proAccount ? 'On' : 'Off'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Highest Quality Upload</p><p class="font-medium">${c.hqUpload ? 'On' : 'Off'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Sharing &amp; Remixing</p><p class="font-medium">${c.remixing ? 'On' : 'Off'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Interaction Between Accounts</p><p class="font-medium">${c.campInteraction ? 'On' : 'Off'}</p></div>
+        </div>
+      </div>
+      <div class="card rounded-2xl p-6 shadow-soft">
+        <h3 class="font-bold text-lg mb-4">Videos &amp; Posting Data</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Video Source</p><p class="font-medium">${c.videoSource === 'local' ? 'Local Folder' : 'Google Drive'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Videos Added</p><p class="font-medium">${c.stats.videosActual}</p></div>
+          <div class="md:col-span-2"><p class="text-xs text-[var(--gray-500)] mb-1">Description</p><p class="font-medium">${c.description || '—'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Hashtags</p><p class="font-medium">${c.hashtags || '—'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Location</p><p class="font-medium">${c.location || '—'}</p></div>
+          <div><p class="text-xs text-[var(--gray-500)] mb-1">Featured Account</p><p class="font-medium">${c.featuredAccount || '—'}</p></div>
+        </div>
+      </div>`;
   }
 
   // ---------- Account pools ----------
@@ -2660,17 +2789,71 @@
     document.getElementById('avatarDriveBlock').style.display = source === 'drive' ? 'block' : 'none';
   }
 
+  function launchCampaign(){
+    const brand = brands.find(b => b.id === activeCampaignBrandId);
+    const project = brand ? brand.projects.find(p => p.id === activeCampaignProjectId) : null;
+    const r = computeCampaignRequirements();
+    const targetCard = document.querySelector('#targetChoices .choice-card.selected');
+    const cloudphonePool = cloudphonePools.find(cp => cp.id === +document.getElementById('campaignCloudphonePoolSelect').value);
+    const accountPool = pools.find(p => p.id === +document.getElementById('campaignPoolSelect').value);
+    const duringPreset = presetLibrary.find(pr => pr.id === +document.getElementById('campaignDuringMaintenanceSelect').value);
+    const afterPreset = presetLibrary.find(pr => pr.id === +document.getElementById('campaignAfterMaintenanceSelect').value);
+    const videoSourceCard = document.querySelector('[data-source].selected');
+
+    campaignCounter++;
+    campaigns.push({
+      id: campaignCounter,
+      name: document.getElementById('campaignNameInput').value.trim() || `Campaign ${campaignCounter}`,
+      brandName: brand ? brand.name : '—',
+      projectName: project ? project.name : '—',
+      targetMode: targetCard ? targetCard.dataset.target : 'views',
+      targetViews: document.getElementById('targetViewsInput').value || 0,
+      targetVideos: document.getElementById('targetVideosInput').value || 0,
+      cloudphonePoolName: cloudphonePool ? cloudphonePool.name : null,
+      accountPoolName: accountPool ? accountPool.name : null,
+      timePeriod: document.getElementById('campaignTimePeriodInput').value,
+      avgViews: document.getElementById('campaignAvgViewsInput').value,
+      minPostsPerDay: document.getElementById('campaignMinPostsPerDayInput').value,
+      maxPostsPerDay: document.getElementById('campaignMaxPostsPerDayInput').value,
+      accountsPerPhone: document.getElementById('medianAccountsPerPhoneDisplay').value,
+      phonesPerProxy: document.getElementById('medianPhonesPerProxyDisplay').value,
+      duringMaintenanceName: duringPreset ? duringPreset.name : null,
+      afterMaintenanceName: afterPreset ? afterPreset.name : null,
+      changeProfile: document.getElementById('changeProfileToggle').classList.contains('on'),
+      proAccount: document.querySelector('[data-toggle="proAccount"]').classList.contains('on'),
+      hqUpload: document.querySelector('[data-toggle="hqUpload"]').classList.contains('on'),
+      remixing: document.querySelector('[data-toggle="remixing"]').classList.contains('on'),
+      campInteraction: document.querySelector('[data-toggle="campInteraction"]').classList.contains('on'),
+      videoSource: videoSourceCard ? videoSourceCard.dataset.source : 'drive',
+      description: document.getElementById('campaignDescriptionInput').value.trim(),
+      hashtags: document.getElementById('campaignHashtagsInput').value.trim(),
+      location: document.getElementById('campaignLocationInput').value.trim(),
+      featuredAccount: document.getElementById('campaignFeaturedAccountInput').value.trim(),
+      stats: {
+        accountsActual: r.readyAccounts, accountsRequired: r.requiredAccounts,
+        phonesActual: cloudphones.filter(c=>c.status==='Ready').length, phonesRequired: r.requiredPhones,
+        proxiesActual: proxies.filter(p=>p.status==='Ready').length, proxiesRequired: r.requiredProxies,
+        videosActual: r.videosAdded, videosRequired: r.requiredVideos,
+      },
+    });
+    renderCampaignLibrary();
+  }
+
   function wizardNav(dir){
     if(wstep === totalSteps && dir === 1){
+      launchCampaign();
       alert('Campaign launched.');
       document.getElementById('campaignWizardCard').style.display = 'none';
       document.getElementById('campaignGateCard').style.display = 'block';
+      showCampaignsView('library');
       return;
     }
     wstep = Math.min(totalSteps, Math.max(1, wstep + dir));
     renderWizard();
   }
   renderWizard();
+  renderCampaignLibrary();
+  showCampaignsView('library');
 </script>
 </body>
 </html>
