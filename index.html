@@ -945,6 +945,24 @@
             </div>
           </div>
 
+          <div class="mb-5">
+            <label class="field-label">Choose Cloudphone Pool</label>
+            <p class="text-xs text-[var(--gray-500)] mb-2">Its phones-per-proxy ratio feeds Campaign Formula Parameters below.</p>
+            <select id="campaignCloudphonePoolSelect" onchange="updateCampaignRequirements()"></select>
+          </div>
+
+          <div class="mb-5">
+            <label class="field-label">Choose Account Pools</label>
+            <p class="text-xs text-[var(--gray-500)] mb-2">Select every account pool this campaign should draw from. Its accounts-per-phone ratio also feeds the formula below.</p>
+            <div class="flex flex-col gap-2" id="campaignPoolChecklist"></div>
+            <div class="flex items-center gap-4 mt-3 text-sm" id="campaignPoolCounts">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:#15803d;"></span><span id="campaignPoolReady">0</span> ready</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:var(--gray-400);"></span><span id="campaignPoolNotReady">0</span> not ready</span>
+              <span class="text-[var(--gray-400)]">·</span>
+              <span><span id="campaignPoolTotal">0</span> accounts total across <span id="campaignPoolCount">0</span> pool(s)</span>
+            </div>
+          </div>
+
           <div class="card rounded-xl p-4 !border-[var(--gray-100)] bg-[var(--gray-50)] mb-4">
             <p class="text-sm font-semibold mb-3">Campaign Formula Parameters</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -953,11 +971,11 @@
               <div><label class="field-label">Min Posts Per Day / Account</label><input type="number" id="campaignMinPostsPerDayInput" min="0" step="1" value="1" onchange="clampCampaignPosts('min'); updateCampaignRequirements()"></div>
               <div><label class="field-label">Max Posts Per Day / Account</label><input type="number" id="campaignMaxPostsPerDayInput" min="0" step="1" value="3" onchange="clampCampaignPosts('max'); updateCampaignRequirements()"></div>
               <div>
-                <label class="field-label">Accounts Per Phone <span class="text-[var(--gray-400)]">(system median)</span></label>
+                <label class="field-label">Accounts Per Phone <span class="text-[var(--gray-400)]">(from chosen account pools)</span></label>
                 <input type="text" id="medianAccountsPerPhoneDisplay" readonly value="1" style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed;">
               </div>
               <div>
-                <label class="field-label">Phones Per Proxy <span class="text-[var(--gray-400)]">(system median)</span></label>
+                <label class="field-label">Phones Per Proxy <span class="text-[var(--gray-400)]">(from chosen cloudphone pool)</span></label>
                 <input type="text" id="medianPhonesPerProxyDisplay" readonly value="2" style="background:var(--gray-100);color:var(--gray-500);cursor:not-allowed;">
               </div>
             </div>
@@ -969,20 +987,9 @@
           </div>
         </div>
 
-        <!-- Step 2: Pool & account settings -->
+        <!-- Step 2: Account settings -->
         <div class="wizard-step" data-wstep="2">
-          <h3 class="font-bold text-lg mb-4">Account Pool &amp; Settings</h3>
-          <div class="mb-5">
-            <label class="field-label">Choose Pools</label>
-            <p class="text-xs text-[var(--gray-500)] mb-2">Select every account pool this campaign should draw from.</p>
-            <div class="flex flex-col gap-2" id="campaignPoolChecklist"></div>
-            <div class="flex items-center gap-4 mt-3 text-sm" id="campaignPoolCounts">
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:#15803d;"></span><span id="campaignPoolReady">0</span> ready</span>
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:var(--gray-400);"></span><span id="campaignPoolNotReady">0</span> not ready</span>
-              <span class="text-[var(--gray-400)]">·</span>
-              <span><span id="campaignPoolTotal">0</span> accounts total across <span id="campaignPoolCount">0</span> pool(s)</span>
-            </div>
-          </div>
+          <h3 class="font-bold text-lg mb-4">Account Settings</h3>
           <div class="flex flex-col gap-3 mb-5">
             <div class="flex items-center justify-between"><span class="text-sm font-medium">Change avatar, username, name, bio, link</span><div class="toggle" data-toggle="changeProfile" id="changeProfileToggle"><div class="knob"></div></div></div>
 
@@ -1357,11 +1364,13 @@
     return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
-  // System-wide medians used as static, non-editable Campaign Formula Parameters —
-  // one ratio per pool / per proxy, not per-account or per-phone, so a handful of
-  // large pools/proxies can't skew the figure the way an average would.
-  function getMedianAccountsPerPhone(){
-    const ratios = pools
+  // Read-only Campaign Formula Parameters fields, scoped to whatever the operator picked
+  // in Step 1 — accounts-per-phone from the chosen account pools, phones-per-proxy from
+  // the chosen cloudphone pool. Falls back to the system-wide median when nothing (or an
+  // empty) pool is selected yet, so the fields never show a blank/zero value.
+  function getMedianAccountsPerPhone(poolIds){
+    const scopedPools = poolIds ? pools.filter(p => poolIds.includes(p.id)) : pools;
+    const ratios = scopedPools
       .map(p => (p.accounts || []))
       .filter(accounts => accounts.length > 0)
       .map(accounts => {
@@ -1370,15 +1379,27 @@
       });
     return median(ratios) || 1;
   }
-  function getMedianPhonesPerProxy(){
+  function getMedianPhonesPerProxy(cloudphonePoolId){
+    if(cloudphonePoolId){
+      const pool = cloudphonePools.find(cp => cp.id === cloudphonePoolId);
+      if(pool) return pool.phonesPerProxy;
+    }
     const counts = proxies.map(p => p.attachedPhoneIds.length).filter(n => n > 0);
     return median(counts) || DEFAULT_PHONES_PER_PROXY;
+  }
+  function renderCampaignCloudphonePoolSelect(){
+    const sel = document.getElementById('campaignCloudphonePoolSelect');
+    if(!sel) return;
+    const prevValue = sel.value;
+    sel.innerHTML = '<option value="">— None (system median) —</option>' + cloudphonePools.map(cp => `<option value="${cp.id}">${cp.name}</option>`).join('');
+    if(cloudphonePools.some(cp => String(cp.id) === prevValue)) sel.value = prevValue;
   }
   function renderMedianCampaignFormulaFields(){
     const accEl = document.getElementById('medianAccountsPerPhoneDisplay');
     const proxEl = document.getElementById('medianPhonesPerProxyDisplay');
-    if(accEl) accEl.value = getMedianAccountsPerPhone().toFixed(1);
-    if(proxEl) proxEl.value = getMedianPhonesPerProxy().toFixed(1);
+    const cloudphonePoolId = +document.getElementById('campaignCloudphonePoolSelect')?.value || null;
+    if(accEl) accEl.value = getMedianAccountsPerPhone(selectedCampaignPoolIds).toFixed(1);
+    if(proxEl) proxEl.value = getMedianPhonesPerProxy(cloudphonePoolId).toFixed(1);
   }
 
   function renderAvgPhonesPerProxyStat(){
@@ -2509,7 +2530,7 @@
     document.getElementById('wizardBack').disabled = wstep === 1;
     document.getElementById('wizardNext').textContent = wstep === totalSteps ? 'Launch Campaign' : 'Next';
     renderCampaignMaintenanceSelects();
-    if(wstep === 2) renderCampaignPoolSelect();
+    if(wstep === 1){ renderCampaignCloudphonePoolSelect(); renderCampaignPoolSelect(); }
     updateCampaignRequirements();
   }
 
@@ -2558,10 +2579,11 @@
     const readyAccounts = selectedPools.reduce((sum, p) => sum + (p.status === 'Ready for campaign' ? (p.accountCount || 0) : 0), 0);
     const accountGap = Math.max(0, requiredAccounts - readyAccounts);
 
-    // Accounts-per-phone and phones-per-proxy are static system medians shown read-only
-    // in Campaign Formula Parameters — not editable, not scoped to the selected pools.
-    const accountsPerPhone = getMedianAccountsPerPhone();
-    const phonesPerProxy = getMedianPhonesPerProxy();
+    // Accounts-per-phone and phones-per-proxy are read-only in Campaign Formula Parameters,
+    // derived from the chosen account pools and chosen cloudphone pool respectively.
+    const cloudphonePoolId = +document.getElementById('campaignCloudphonePoolSelect').value || null;
+    const accountsPerPhone = getMedianAccountsPerPhone(selectedCampaignPoolIds);
+    const phonesPerProxy = getMedianPhonesPerProxy(cloudphonePoolId);
 
     const requiredPhones = Math.ceil(requiredAccounts / accountsPerPhone);
     const requiredProxies = Math.ceil(requiredPhones / phonesPerProxy);
